@@ -1,0 +1,40 @@
+{
+  "name": "sistema-viñetas",
+  "version": "1.0.0",
+  "description": "Sistema CRUD para generar viñetas con código de barras",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [
+    "electron",
+    "sqlite",
+    "tailwind",
+    "jspdf",
+    "barcode"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "electron": "^35.1.4",
+    "electron-builder": "^24.6.3",
+    "electron-rebuild": "^3.2.9",
+    "postcss": "^8.4.27",
+    "tailwindcss": "^3.3.3"
+  },
+  "dependencies": {
+    "electron-serve": "^1.1.0",
+    "jsbarcode": "^3.11.5",
+    "jspdf": "^2.5.1",
+    "sqlite3": "^5.1.6"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "core-js",
+      "electron",
+      "sqlite3"
+    ]
+  }
+}

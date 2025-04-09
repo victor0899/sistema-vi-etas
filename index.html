@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Viñetas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            secundary: '#1e40af',
+            accent: '#f59e0b'
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-primary text-white shadow-md">
+      <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Sistema de Viñetas</h1>
+        <div>
+          <button id="btnNuevoProducto" class="bg-secundary hover:bg-blue-800 text-white px-4 py-2 rounded">
+            <i class="fas fa-plus mr-2"></i>Nuevo Producto
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+      <!-- Buscador -->
+      <div class="mb-6">
+        <div class="flex items-center bg-white rounded-lg shadow-md px-3">
+          <i class="fas fa-search text-gray-500 mr-2"></i>
+          <input type="text" id="searchInput" placeholder="Buscar por nombre o código de barras..." 
+                 class="w-full px-2 py-3 outline-none">
+        </div>
+      </div>
+
+      <!-- Tabla de Productos -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead class="bg-gray-100 border-b">
+              <tr>
+                <th class="px-6 py-3">ID</th>
+                <th class="px-6 py-3">Nombre</th>
+                <th class="px-6 py-3">Precio</th>
+                <th class="px-6 py-3">Código de Barras</th>
+                <th class="px-6 py-3">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="productosTable">
+              <!-- Los productos se cargarán aquí dinámicamente -->
+              <tr>
+                <td colspan="5" class="px-6 py-4 text-center">Cargando productos...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-4">
+      <div class="container mx-auto px-4 text-center">
+        <p>Sistema de Viñetas - EasyFact</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modal para Nuevo/Editar Producto -->
+  <div id="productoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modalTitle" class="text-xl font-bold">Nuevo Producto</h3>
+        <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form id="productoForm">
+        <input type="hidden" id="productoId">
+        
+        <div class="mb-4">
+          <label for="nombre" class="block text-gray-700 font-medium mb-2">Nombre</label>
+          <input type="text" id="nombre" required 
+                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <div class="mb-4">
+          <label for="precio" class="block text-gray-700 font-medium mb-2">Precio</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+            <input type="number" id="precio" step="0.01" required 
+                   class="w-full pl-8 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <label for="codigo_barras" class="block text-gray-700 font-medium mb-2">Código de Barras</label>
+          <input type="text" id="codigo_barras" required 
+                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <div class="mb-4">
+          <label for="descripcion" class="block text-gray-700 font-medium mb-2">Descripción (Opcional)</label>
+          <textarea id="descripcion" rows="3" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+          <button type="button" id="cancelarBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+            Cancelar
+          </button>
+          <button type="submit" id="guardarBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal para Generar Viñeta -->
+  <div id="vinetaModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold">Generar Viñeta</h3>
+        <button id="closeVinetaModal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-gray-700 font-medium mb-2">Vista previa</label>
+        <div id="vinetaPreview" class="border border-gray-300 p-4 flex justify-center">
+          <!-- La vista previa se generará aquí -->
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <label for="cantidad" class="block text-gray-700 font-medium mb-2">Cantidad de viñetas</label>
+        <input type="number" id="cantidad" min="1" value="1" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      
+      <div class="flex justify-end space-x-3">
+        <button type="button" id="cancelarVinetaBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+          Cancelar
+        </button>
+        <button type="button" id="generarPDFBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          <i class="fas fa-file-pdf mr-2"></i>Generar PDF
+        </button>
+        <button type="button" id="imprimirBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+          <i class="fas fa-print mr-2"></i>Imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
+  <script src="src/js/productos.js"></script>
+  
+  <script>
+    window.onload = function() {
+      console.log('Ventana cargada completamente');
+      console.log('editarProducto disponible:', typeof window.editarProducto === 'function');
+      console.log('eliminarProducto disponible:', typeof window.eliminarProducto === 'function');
+      console.log('generarVineta disponible:', typeof window.generarVineta === 'function');
+    };
+  </script>
+</body>
+</html>
