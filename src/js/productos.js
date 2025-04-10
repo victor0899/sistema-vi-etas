@@ -284,23 +284,47 @@ function generarVistaPrevia(producto) {
   console.log('Generando vista previa para:', producto);
   const preview = document.getElementById('vinetaPreview');
   preview.innerHTML = '';
+  
   const vinetaContainer = document.createElement('div');
   vinetaContainer.className = 'vineta-container border border-gray-300 p-3 bg-white';
-  vinetaContainer.style.width = '300px';
+  
+  // Dimensiones ajustadas para que representen la proporción de las etiquetas reales (100x65mm)
+  vinetaContainer.style.width = '300px'; // Ajustar ancho a escala
+  vinetaContainer.style.height = '195px'; // Mantener proporción (300 * 65/100)
+  vinetaContainer.style.display = 'flex';
+  vinetaContainer.style.flexDirection = 'column';
+  vinetaContainer.style.justifyContent = 'center';
+  vinetaContainer.style.alignItems = 'center';
+  
+  // Creamos los elementos con tamaños proporcionales
   const negocioNombre = document.createElement('div');
-  negocioNombre.className = 'text-center font-bold text-sm mb-1';
+  negocioNombre.className = 'text-center font-bold mb-2';
+  negocioNombre.style.fontSize = '16px';
   negocioNombre.textContent = 'VARIEDADES PRIMICIA';
+  
   const productoNombre = document.createElement('div');
-  productoNombre.className = 'text-center text-sm mb-1';
+  productoNombre.className = 'text-center mb-2';
+  productoNombre.style.fontSize = '14px';
+  productoNombre.style.maxWidth = '90%';
+  productoNombre.style.overflow = 'hidden';
+  productoNombre.style.textOverflow = 'ellipsis';
   productoNombre.textContent = producto.nombre;
+  
   const precio = document.createElement('div');
-  precio.className = 'text-center font-bold text-lg mb-2';
+  precio.className = 'text-center font-bold mb-3';
+  precio.style.fontSize = '22px';
   precio.textContent = `$${parseFloat(producto.precio).toFixed(2)}`;
+  
   const barcodeCanvas = document.createElement('canvas');
   barcodeCanvas.id = 'barcodeCanvas';
+  barcodeCanvas.style.width = '80%';
+  barcodeCanvas.style.marginBottom = '10px';
+  
   const codigoInfo = document.createElement('div');
-  codigoInfo.className = 'text-center text-xs mt-1';
+  codigoInfo.className = 'text-center mt-1';
+  codigoInfo.style.fontSize = '12px';
   codigoInfo.textContent = producto.codigo_barras;
+  
   vinetaContainer.appendChild(negocioNombre);
   vinetaContainer.appendChild(productoNombre);
   vinetaContainer.appendChild(precio);
@@ -309,17 +333,20 @@ function generarVistaPrevia(producto) {
   preview.appendChild(vinetaContainer);
 
   try {
+    // Configuración ajustada del código de barras
     JsBarcode('#barcodeCanvas', producto.codigo_barras, {
       format: 'CODE128',
       width: 2,
-      height: 50,
-      displayValue: false
+      height: 60,
+      displayValue: false,
+      margin: 5
     });
   } catch (error) {
     console.error('Error al generar código de barras:', error);
     codigoInfo.textContent = 'Error al generar código de barras: ' + error.message;
     codigoInfo.className = 'text-center text-red-500 text-xs mt-1';
   }
+  
   preview.dataset.productoId = producto.id;
   
   return vinetaContainer;
@@ -353,19 +380,23 @@ async function imprimirDirecto() {
         body { margin: 0; padding: 0; }
         .print-row { display: flex; flex-wrap: wrap; }
         .vineta-print {
-          width: 50mm;
-          height: 30mm;
-          padding: 2mm;
+          width: 100mm;
+          height: 65mm;
+          padding: 3mm;
           box-sizing: border-box;
           text-align: center;
           border: 0;
           page-break-inside: avoid;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
         }
-        .vineta-print .titulo { font-weight: bold; font-size: 8pt; margin-bottom: 1mm; }
-        .vineta-print .nombre { font-size: 7pt; margin-bottom: 1mm; }
-        .vineta-print .precio { font-weight: bold; font-size: 10pt; margin-bottom: 2mm; }
-        .vineta-print img { max-width: 100%; height: 10mm; }
-        .vineta-print .codigo { font-size: 6pt; margin-top: 1mm; }
+        .vineta-print .titulo { font-weight: bold; font-size: 10pt; margin-bottom: 2mm; }
+        .vineta-print .nombre { font-size: 9pt; margin-bottom: 2mm; overflow: hidden; text-overflow: ellipsis; max-width: 90mm; }
+        .vineta-print .precio { font-weight: bold; font-size: 14pt; margin-bottom: 3mm; }
+        .vineta-print img { max-width: 80mm; height: 15mm; margin: 3mm 0; }
+        .vineta-print .codigo { font-size: 8pt; margin-top: 2mm; }
       }
     `;
     printContainer.appendChild(style);
