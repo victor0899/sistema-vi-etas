@@ -32,7 +32,7 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.handle('print-vineta', async (event, htmlContent) => {
+ipcMain.handle('print-vineta', async (event, htmlContent, printOptions = {}) => {
   try {
     const printWindow = new BrowserWindow({
       width: 800,
@@ -43,6 +43,36 @@ ipcMain.handle('print-vineta', async (event, htmlContent) => {
         contextIsolation: true
       }
     });
+
+    // Preparar CSS con configuración de tamaño de página específico (100x65mm)
+    const customCSS = `
+      @page {
+        size: 100mm 65mm !important;
+        margin: 0 !important;
+      }
+      @media print {
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100mm !important;
+          height: 65mm !important;
+          overflow: hidden !important;
+        }
+        .vineta-print {
+          width: 100mm !important;
+          height: 65mm !important;
+          padding: ${printOptions.margins?.top || 3}mm ${printOptions.margins?.right || 3}mm ${printOptions.margins?.bottom || 3}mm ${printOptions.margins?.left || 3}mm !important;
+          box-sizing: border-box !important;
+          text-align: center !important;
+          page-break-after: always !important;
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: center !important;
+          align-items: center !important;
+          overflow: hidden !important;
+        }
+      }
+    `;
 
     await printWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(`
       <!DOCTYPE html>
@@ -66,39 +96,47 @@ ipcMain.handle('print-vineta', async (event, htmlContent) => {
             justify-content: center;
             align-items: center;
           }
-          .vineta-print .titulo { 
-            font-weight: bold; 
-            font-size: 12pt; 
-            margin-bottom: 2mm; 
-            display: block !important;
-          }
-          .vineta-print .nombre { 
-            font-size: 10pt; 
-            font-weight: bold;
-            margin-bottom: 3mm; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            max-width: 90mm;
-            display: block !important;
-            visibility: visible !important;
-          }
-          .vineta-print .precio { 
-            font-weight: bold; 
-            font-size: 14pt; 
-            margin-bottom: 4mm; 
-            display: block !important;
-          }
-          .vineta-print img { 
-            max-width: 80mm; 
-            height: 15mm; 
-            margin: 3mm 0;
+          .vineta-print img.barcode { 
+            max-width: 80%; 
+            height: 20mm; 
+            margin-bottom: 2mm;
             display: block !important;
           }
           .vineta-print .codigo { 
             font-size: 8pt; 
-            margin-top: 2mm; 
-            display: block !important;
+            margin-bottom: 3mm; 
+            color: #000 !important;
+            display: block !important; 
           }
+          .vineta-print .nombre-precio-container {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            width: 100% !important;
+            margin-top: 2mm !important;
+          }
+          .vineta-print .nombre { 
+            font-size: 10pt; 
+            font-weight: bold !important;
+            color: #000 !important; 
+            text-align: left !important;
+            flex: 1 !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+            padding-right: 2mm !important;
+            display: inline-block !important;
+            visibility: visible !important;
+          }
+          .vineta-print .precio { 
+            font-weight: bold !important; 
+            font-size: 14pt; 
+            color: #000 !important;
+            text-align: right !important;
+            white-space: nowrap !important;
+            display: inline-block !important;
+          }
+          ${customCSS}
         </style>
       </head>
       <body>
@@ -110,12 +148,13 @@ ipcMain.handle('print-vineta', async (event, htmlContent) => {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     try {
-      const printOptions = { 
+      // Configurar opciones específicas para impresión de etiquetas
+      const defaultPrintOptions = { 
         silent: false,
         printBackground: true,
         color: true,
         margin: {
-          marginType: 'custom',
+          marginType: 'none', // Sin márgenes
           top: 0,
           bottom: 0,
           left: 0,
@@ -125,10 +164,20 @@ ipcMain.handle('print-vineta', async (event, htmlContent) => {
         scaleFactor: 100,
         pagesPerSheet: 1,
         copies: 1,
-        showPrintDialog: true 
+        // Especificar tamaño personalizado en micrones (1mm = 1000 micrones)
+        // 100mm x 65mm convertido a micrones
+        pageSize: {
+          width: 100000,
+          height: 65000,
+          microns: true
+        },
+        showPrintDialog: true  // Mostrar diálogo para confirmar
       };
       
-      await printWindow.webContents.print(printOptions, (success, reason) => {
+      // Combinar opciones predeterminadas con las proporcionadas
+      const mergedOptions = {...defaultPrintOptions, ...printOptions};
+      
+      await printWindow.webContents.print(mergedOptions, (success, reason) => {
         printWindow.close();
         if (success) {
           event.sender.send('print-completed', { success: true });
