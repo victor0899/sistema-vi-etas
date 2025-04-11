@@ -1,3 +1,25 @@
+let vinetaConfig = {
+
+  marginTop: 3,
+  marginBottom: 3,
+  marginLeft: 3,
+  marginRight: 3,
+
+
+  fontSizeTitle: 16,
+  fontSizeName: 14,
+  fontSizePrice: 22,
+  fontSizeCode: 12,
+
+
+  vinetaWidth: 100,
+  vinetaHeight: 65,
+
+
+  barcodeWidth: 80,
+  barcodeHeight: 60
+};
+
 let productoModal;
 let vinetaModal;
 let productoForm;
@@ -5,23 +27,18 @@ let productosTable;
 let searchInput;
 
 function editarProducto(id) {
-
   mostrarModalEdicion(id);
 }
 
 function eliminarProducto(id) {
-
   confirmarEliminacion(id);
 }
 
 function generarVineta(id) {
-
   mostrarModalVineta(id);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-
-
   productoModal = document.getElementById('productoModal');
   vinetaModal = document.getElementById('vinetaModal');
   productoForm = document.getElementById('productoForm');
@@ -31,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarProductos();
 
   document.getElementById('btnNuevoProducto').addEventListener('click', () => {
-
     mostrarModal();
   });
 
@@ -42,20 +58,17 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('cancelarVinetaBtn').addEventListener('click', () => cerrarVinetaModal());
 
   document.getElementById('imprimirBtn').addEventListener('click', () => {
-
     imprimirDirecto();
   });
 
   const generarPDFBtn = document.getElementById('generarPDFBtn');
   if (generarPDFBtn) {
     generarPDFBtn.addEventListener('click', () => {
-
       generarPDF();
     });
   }
 
   productoForm.addEventListener('submit', (event) => {
-
     guardarProducto(event);
   });
 
@@ -63,12 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function cargarProductos() {
-
   productosTable.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center">Cargando productos...</td></tr>';
 
   try {
     const response = await window.api.getProductos();
-
 
     if (response.success) {
       mostrarProductos(response.data);
@@ -83,8 +94,6 @@ async function cargarProductos() {
 }
 
 function mostrarProductos(productos) {
-
-
   if (!productos || productos.length === 0) {
     productosTable.innerHTML = `
       <tr>
@@ -122,7 +131,6 @@ function mostrarProductos(productos) {
 async function filtrarProductos() {
   const query = searchInput.value.trim();
 
-
   try {
     let productos;
     const response = await window.api.getProductos();
@@ -157,8 +165,6 @@ async function guardarProducto(event) {
     codigo_barras: document.getElementById('codigo_barras').value,
     descripcion: document.getElementById('descripcion').value || ''
   };
-
-
 
   try {
     let response;
@@ -229,7 +235,6 @@ function mostrarModal(producto = null) {
   document.getElementById('productoId').value = '';
 
   if (producto) {
-
     document.getElementById('modalTitle').textContent = 'Editar Producto';
     document.getElementById('productoId').value = producto.id;
     document.getElementById('nombre').value = producto.nombre;
@@ -237,7 +242,6 @@ function mostrarModal(producto = null) {
     document.getElementById('codigo_barras').value = producto.codigo_barras;
     document.getElementById('descripcion').value = producto.descripcion || '';
   } else {
-
     document.getElementById('modalTitle').textContent = 'Nuevo Producto';
   }
 
@@ -246,17 +250,142 @@ function mostrarModal(producto = null) {
 }
 
 function cerrarModal() {
-
   productoModal.classList.add('hidden');
   productoModal.classList.remove('flex');
 }
 
 function cerrarVinetaModal() {
-
   vinetaModal.classList.add('hidden');
   vinetaModal.classList.remove('flex');
 }
 
+
+function initConfigControls() {
+
+  const savedConfig = localStorage.getItem('vinetaConfig');
+  if (savedConfig) {
+    try {
+      vinetaConfig = JSON.parse(savedConfig);
+      updateConfigControls();
+    } catch (e) {
+      console.error('Error al cargar la configuración guardada:', e);
+    }
+  }
+
+
+  setupConfigListeners();
+}
+
+
+function updateConfigControls() {
+
+  document.getElementById('marginTop').value = vinetaConfig.marginTop;
+  document.getElementById('marginTopValue').textContent = vinetaConfig.marginTop;
+
+  document.getElementById('marginBottom').value = vinetaConfig.marginBottom;
+  document.getElementById('marginBottomValue').textContent = vinetaConfig.marginBottom;
+
+  document.getElementById('marginLeft').value = vinetaConfig.marginLeft;
+  document.getElementById('marginLeftValue').textContent = vinetaConfig.marginLeft;
+
+  document.getElementById('marginRight').value = vinetaConfig.marginRight;
+  document.getElementById('marginRightValue').textContent = vinetaConfig.marginRight;
+
+  document.getElementById('fontSizeTitle').value = vinetaConfig.fontSizeTitle;
+  document.getElementById('fontSizeTitleValue').textContent = vinetaConfig.fontSizeTitle;
+
+  document.getElementById('fontSizeName').value = vinetaConfig.fontSizeName;
+  document.getElementById('fontSizeNameValue').textContent = vinetaConfig.fontSizeName;
+
+  document.getElementById('fontSizePrice').value = vinetaConfig.fontSizePrice;
+  document.getElementById('fontSizePriceValue').textContent = vinetaConfig.fontSizePrice;
+
+  document.getElementById('fontSizeCode').value = vinetaConfig.fontSizeCode;
+  document.getElementById('fontSizeCodeValue').textContent = vinetaConfig.fontSizeCode;
+
+  document.getElementById('vinetaWidth').value = vinetaConfig.vinetaWidth;
+  document.getElementById('vinetaWidthValue').textContent = vinetaConfig.vinetaWidth;
+
+  document.getElementById('vinetaHeight').value = vinetaConfig.vinetaHeight;
+  document.getElementById('vinetaHeightValue').textContent = vinetaConfig.vinetaHeight;
+
+  document.getElementById('barcodeWidth').value = vinetaConfig.barcodeWidth;
+  document.getElementById('barcodeWidthValue').textContent = vinetaConfig.barcodeWidth;
+
+  document.getElementById('barcodeHeight').value = vinetaConfig.barcodeHeight;
+  document.getElementById('barcodeHeightValue').textContent = vinetaConfig.barcodeHeight;
+}
+
+
+function setupConfigListeners() {
+
+  const sliders = document.querySelectorAll('.config-panel input[type="range"]');
+  sliders.forEach(slider => {
+    slider.addEventListener('input', function () {
+
+      const valueDisplay = document.getElementById(`${this.id}Value`);
+      if (valueDisplay) {
+        valueDisplay.textContent = this.value;
+      }
+
+
+      vinetaConfig[this.id] = parseFloat(this.value);
+
+
+      updateVinetaPreview();
+    });
+  });
+
+
+  document.getElementById('resetConfig').addEventListener('click', function () {
+
+    vinetaConfig = {
+      marginTop: 3,
+      marginBottom: 3,
+      marginLeft: 3,
+      marginRight: 3,
+      fontSizeTitle: 16,
+      fontSizeName: 14,
+      fontSizePrice: 22,
+      fontSizeCode: 12,
+      vinetaWidth: 100,
+      vinetaHeight: 65,
+      barcodeWidth: 80,
+      barcodeHeight: 60
+    };
+
+
+    updateConfigControls();
+    updateVinetaPreview();
+  });
+
+
+  document.getElementById('saveConfig').addEventListener('click', function () {
+    try {
+      localStorage.setItem('vinetaConfig', JSON.stringify(vinetaConfig));
+      mostrarMensaje('Configuración guardada correctamente', 'success');
+    } catch (e) {
+      console.error('Error al guardar la configuración:', e);
+      mostrarMensaje('Error al guardar la configuración', 'error');
+    }
+  });
+}
+
+
+function updateVinetaPreview() {
+  const productoId = document.getElementById('vinetaPreview').dataset.productoId;
+  if (productoId) {
+    window.api.getProducto(parseInt(productoId))
+      .then(response => {
+        if (response.success) {
+          generarVistaPrevia(response.data);
+        }
+      })
+      .catch(error => {
+        console.error('Error al actualizar vista previa:', error);
+      });
+  }
+}
 
 async function mostrarModalVineta(id) {
   try {
@@ -267,11 +396,8 @@ async function mostrarModalVineta(id) {
       const producto = response.data;
 
 
-
       if (!producto.nombre) {
         console.error('⚠️ ALERTA: El campo nombre del producto está vacío o undefined');
-      } else {
-
       }
 
 
@@ -287,8 +413,8 @@ async function mostrarModalVineta(id) {
       debugElement.id = 'vineta-debug';
       debugElement.style.display = 'none';
       debugElement.innerHTML = `
-        <div style="position: fixed; bottom: 10px; right: 10px; background: #f0f0f0; 
-                    border: 1px solid #ccc; padding: 10px; z-index: 9999; max-width: 300px; 
+        <div style="position: fixed; bottom: 10px; right: 10px; background: #f0f0f0;
+                    border: 1px solid #ccc; padding: 10px; z-index: 9999; max-width: 300px;
                     font-size: 12px; display: none;">
           <h4>Debug Info:</h4>
           <p><strong>ID:</strong> ${producto.id}</p>
@@ -300,6 +426,9 @@ async function mostrarModalVineta(id) {
           </button>
         </div>`;
       document.body.appendChild(debugElement);
+
+
+      initConfigControls();
 
 
       generarVistaPrevia(producto);
@@ -324,15 +453,6 @@ async function mostrarModalVineta(id) {
         document.getElementById('toggleDebug')?.addEventListener('click', () => {
           document.querySelector('#vineta-debug div').style.display = 'none';
         });
-
-
-        const nombreElement = vinetaModal.querySelector('.producto-nombre');
-        if (nombreElement) {
-
-
-        } else {
-          console.error('⚠️ El elemento de nombre no está en el DOM después de generarVistaPrevia');
-        }
       }, 200);
 
     } else {
@@ -345,76 +465,68 @@ async function mostrarModalVineta(id) {
   }
 }
 
-async function verificarEstructuraProducto(id) {
-  const db = new Database();
-  try {
 
-    const query = `
-      SELECT 
-        id,
-        nombre as nombre_producto,
-        precio,
-        codigo_barras,
-        descripcion,
-        created_at,
-        updated_at
-      FROM productos 
-      WHERE id = ?
-    `;
-
-    return new Promise((resolve, reject) => {
-      db.db.get(query, [id], (err, row) => {
-        if (err) {
-          console.error('Error en la consulta:', err);
-          reject(err);
-        } else {
-
-          resolve(row);
-        }
-      });
-    });
-  } catch (error) {
-    console.error('Error al verificar estructura:', error);
-  } finally {
-    db.close();
-  }
-}
 
 function generarVistaPrevia(producto) {
-
-
-
   if (!producto || !producto.nombre) {
     console.error('El producto no tiene nombre o es undefined:', producto);
-  } else {
-
   }
 
   const preview = document.getElementById('vinetaPreview');
   preview.innerHTML = '';
 
   const vinetaContainer = document.createElement('div');
-  vinetaContainer.className = 'vineta-container border border-gray-300 p-3 bg-white';
+  vinetaContainer.className = 'vineta-container with-guides';
 
 
-  vinetaContainer.style.width = '300px';
-  vinetaContainer.style.height = '195px';
+  vinetaContainer.style.width = `${vinetaConfig.vinetaWidth * 3}px`;
+  vinetaContainer.style.height = `${vinetaConfig.vinetaHeight * 3}px`;
+  vinetaContainer.style.padding = `${vinetaConfig.marginTop * 3}px ${vinetaConfig.marginRight * 3}px ${vinetaConfig.marginBottom * 3}px ${vinetaConfig.marginLeft * 3}px`;
+  vinetaContainer.style.boxSizing = 'border-box';
+  vinetaContainer.style.backgroundColor = 'white';
+  vinetaContainer.style.border = '1px solid #ccc';
+  vinetaContainer.style.display = 'flex';
+  vinetaContainer.style.flexDirection = 'column';
+  vinetaContainer.style.alignItems = 'center';
 
 
-  const negocioNombre = document.createElement('div');
-  negocioNombre.className = 'text-center font-bold mb-2';
-  negocioNombre.style.fontSize = '16px';
-  negocioNombre.textContent = 'VARIEDADES PRIMICIA';
+  const barcodeCanvas = document.createElement('canvas');
+  barcodeCanvas.id = 'barcodeCanvas';
+  barcodeCanvas.style.width = `${vinetaConfig.barcodeWidth}%`;
+  barcodeCanvas.style.height = `${vinetaConfig.barcodeHeight}px`;
+  barcodeCanvas.style.marginBottom = '5px';
+
+
+  const codigoInfo = document.createElement('div');
+  codigoInfo.className = 'text-center';
+  codigoInfo.style.fontSize = `${vinetaConfig.fontSizeCode}px`;
+  codigoInfo.style.marginBottom = '8px';
+  codigoInfo.textContent = producto.codigo_barras;
+
+
+  const nombrePrecioContainer = document.createElement('div');
+  nombrePrecioContainer.style.display = 'flex';
+  nombrePrecioContainer.style.justifyContent = 'space-between';
+  nombrePrecioContainer.style.alignItems = 'center';
+  nombrePrecioContainer.style.width = '100%';
+  nombrePrecioContainer.style.marginTop = '5px';
 
 
   const productoNombre = document.createElement('div');
   productoNombre.className = 'producto-nombre';
-
+  productoNombre.style.fontSize = `${vinetaConfig.fontSizeName}px`;
+  productoNombre.style.fontWeight = 'bold';
+  productoNombre.style.textAlign = 'left';
+  productoNombre.style.flex = '1';
+  productoNombre.style.overflow = 'hidden';
+  productoNombre.style.textOverflow = 'ellipsis';
+  productoNombre.style.whiteSpace = 'nowrap';
+  productoNombre.style.marginRight = '10px';
 
   if (producto && producto.nombre) {
-
-    if (producto.nombre.length > 25) {
-      productoNombre.textContent = producto.nombre.substring(0, 22) + '...';
+    if (producto.nombre.length > 20) {
+      productoNombre.textContent = producto.nombre.substring(0, 17) + '...';
+      productoNombre.title = producto.nombre;
     } else {
       productoNombre.textContent = producto.nombre;
     }
@@ -423,43 +535,38 @@ function generarVistaPrevia(producto) {
     productoNombre.style.color = 'red';
   }
 
+
   const precio = document.createElement('div');
-  precio.className = 'text-center font-bold mb-3';
-  precio.style.fontSize = '22px';
+  precio.className = 'font-bold';
+  precio.style.fontSize = `${vinetaConfig.fontSizePrice}px`;
+  precio.style.textAlign = 'right';
+  precio.style.whiteSpace = 'nowrap';
   precio.textContent = `$${parseFloat(producto.precio).toFixed(2)}`;
 
-  const barcodeCanvas = document.createElement('canvas');
-  barcodeCanvas.id = 'barcodeCanvas';
-  barcodeCanvas.style.width = '80%';
-  barcodeCanvas.style.marginBottom = '10px';
 
-  const codigoInfo = document.createElement('div');
-  codigoInfo.className = 'text-center mt-1';
-  codigoInfo.style.fontSize = '12px';
-  codigoInfo.textContent = producto.codigo_barras;
+  nombrePrecioContainer.appendChild(productoNombre);
+  nombrePrecioContainer.appendChild(precio);
 
 
-  vinetaContainer.appendChild(negocioNombre);
-  vinetaContainer.appendChild(productoNombre);
-  vinetaContainer.appendChild(precio);
   vinetaContainer.appendChild(barcodeCanvas);
   vinetaContainer.appendChild(codigoInfo);
+  vinetaContainer.appendChild(nombrePrecioContainer);
 
   preview.appendChild(vinetaContainer);
 
-  try {
 
+  try {
     JsBarcode('#barcodeCanvas', producto.codigo_barras, {
       format: 'CODE128',
       width: 2,
-      height: 60,
+      height: vinetaConfig.barcodeHeight,
       displayValue: false,
       margin: 5
     });
   } catch (error) {
     console.error('Error al generar código de barras:', error);
     codigoInfo.textContent = 'Error al generar código de barras: ' + error.message;
-    codigoInfo.className = 'text-center text-red-500 text-xs mt-1';
+    codigoInfo.className = 'text-center text-red-500 text-xs';
   }
 
   preview.dataset.productoId = producto.id;
@@ -467,422 +574,583 @@ function generarVistaPrevia(producto) {
   return vinetaContainer;
 }
 
-async function imprimirDirecto() {
+
+function imprimirDirecto() {
   const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
   const productoId = document.getElementById('vinetaPreview').dataset.productoId;
 
   try {
-
-    const response = await window.api.getProducto(productoId);
-
-    if (!response.success) {
-      console.error('Error al obtener datos del producto para impresión:', response.error);
-      mostrarMensaje('Error al obtener datos del producto', 'error');
-      return;
-    }
-
-    const producto = response.data;
-
-
-    const printContainer = document.createElement('div');
-    printContainer.id = 'print-container';
-    printContainer.style.position = 'fixed';
-    printContainer.style.top = '-9999px';
-    printContainer.style.left = '-9999px';
-    document.body.appendChild(printContainer);
-
-    const style = document.createElement('style');
-    style.textContent = `
-      @media print {
-        body { margin: 0; padding: 0; }
-        .print-row { display: flex; flex-wrap: wrap; }
-        .vineta-print {
-          width: 100mm;
-          height: 65mm;
-          padding: 3mm;
-          box-sizing: border-box;
-          text-align: center;
-          border: 0;
-          page-break-inside: avoid;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
+    window.api.getProducto(parseInt(productoId))
+      .then(response => {
+        if (!response.success) {
+          console.error('Error al obtener datos del producto para impresión:', response.error);
+          mostrarMensaje('Error al obtener datos del producto', 'error');
+          return;
         }
-        .vineta-print .titulo { 
-          font-weight: bold; 
-          font-size: 12pt; 
-          margin-bottom: 2mm; 
-          color: #000 !important; 
-          display: block !important;
+
+        const producto = response.data;
+
+
+        const printContainer = document.createElement('div');
+        printContainer.id = 'print-container';
+        printContainer.style.position = 'fixed';
+        printContainer.style.top = '-9999px';
+        printContainer.style.left = '-9999px';
+        document.body.appendChild(printContainer);
+
+
+        const style = document.createElement('style');
+        style.textContent = `
+          @media print {
+            body { margin: 0; padding: 0; }
+            .print-row { display: flex; flex-wrap: wrap; }
+            .vineta-print {
+              width: ${vinetaConfig.vinetaWidth}mm;
+              height: ${vinetaConfig.vinetaHeight}mm;
+              padding: ${vinetaConfig.marginTop}mm ${vinetaConfig.marginRight}mm ${vinetaConfig.marginBottom}mm ${vinetaConfig.marginLeft}mm;
+              box-sizing: border-box;
+              text-align: center;
+              border: 0;
+              page-break-inside: avoid;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+            }
+            .vineta-print img.barcode { 
+              max-width: ${vinetaConfig.barcodeWidth}%; 
+              height: ${vinetaConfig.barcodeHeight / 3}mm; 
+              margin-bottom: 2mm;
+              display: block !important;
+            }
+            .vineta-print .codigo { 
+              font-size: ${vinetaConfig.fontSizeCode / 2.5}pt; 
+              margin-bottom: 3mm; 
+              color: #000 !important;
+              display: block !important; 
+            }
+            .vineta-print .nombre-precio-container {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              width: 100%;
+              margin-top: 2mm;
+            }
+            .vineta-print .nombre { 
+              font-size: ${vinetaConfig.fontSizeName / 2.5}pt; 
+              font-weight: bold;
+              color: #000 !important; 
+              text-align: left;
+              flex: 1;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              padding-right: 2mm;
+              display: inline-block !important;
+              visibility: visible !important;
+            }
+            .vineta-print .precio { 
+              font-weight: bold; 
+              font-size: ${vinetaConfig.fontSizePrice / 2.5}pt; 
+              color: #000 !important;
+              text-align: right;
+              white-space: nowrap;
+              display: inline-block !important;
+            }
+          }
+        `;
+        printContainer.appendChild(style);
+
+
+        const vinetasContainer = document.createElement('div');
+        vinetasContainer.className = 'print-row';
+        printContainer.appendChild(vinetasContainer);
+
+
+        const canvas = document.getElementById('barcodeCanvas');
+        const barcodeImage = canvas.toDataURL('image/png');
+
+
+        for (let i = 0; i < cantidad; i++) {
+          const vineta = document.createElement('div');
+          vineta.className = 'vineta-print';
+
+
+          let nombreMostrado = producto.nombre || 'Producto sin nombre';
+          if (nombreMostrado.length > 20) {
+            nombreMostrado = nombreMostrado.substring(0, 17) + '...';
+          }
+
+
+          vineta.innerHTML = `
+            <img src="${barcodeImage}" alt="Código de barras" class="barcode">
+            <div class="codigo">${producto.codigo_barras}</div>
+            <div class="nombre-precio-container">
+              <div class="nombre">${nombreMostrado}</div>
+              <div class="precio">$${parseFloat(producto.precio).toFixed(2)}</div>
+            </div>
+          `;
+
+          vinetasContainer.appendChild(vineta);
         }
-        .vineta-print .nombre { 
-          font-size: 10pt; 
-          font-weight: bold;
-          margin-bottom: 3mm; 
-          color: #000 !important; 
-          overflow: hidden; 
-          text-overflow: ellipsis; 
-          max-width: 90mm;
-          display: block !important;
-          visibility: visible !important;
-        }
-        .vineta-print .precio { 
-          font-weight: bold; 
-          font-size: 14pt; 
-          margin-bottom: 4mm; 
-          color: #000 !important;
-          display: block !important;
-        }
-        .vineta-print img { 
-          max-width: 80mm; 
-          height: 15mm; 
-          margin: 3mm 0;
-          display: block !important;
-        }
-        .vineta-print .codigo { 
-          font-size: 8pt; 
-          margin-top: 2mm; 
-          color: #000 !important;
-          display: block !important; 
-        }
-      }
-    `;
-    printContainer.appendChild(style);
-
-    const vinetasContainer = document.createElement('div');
-    vinetasContainer.className = 'print-row';
-    printContainer.appendChild(vinetasContainer);
-
-    const canvas = document.getElementById('barcodeCanvas');
-    const barcodeImage = canvas.toDataURL('image/png');
-
-    for (let i = 0; i < cantidad; i++) {
-      const vineta = document.createElement('div');
-      vineta.className = 'vineta-print';
 
 
-      let nombreMostrado = producto.nombre || 'Producto sin nombre';
-      if (nombreMostrado.length > 25) {
-        nombreMostrado = nombreMostrado.substring(0, 22) + '...';
-      }
+        window.api.onPrintCompleted((result) => {
+          if (result.success) {
+            mostrarMensaje('Viñetas enviadas a la impresora correctamente', 'success');
+            cerrarVinetaModal();
+          } else {
+            console.error('Error al imprimir:', result.error);
+            mostrarMensaje('Error al imprimir: ' + (result.error || 'La impresión fue cancelada'), 'error');
+          }
 
-      vineta.innerHTML = `
-        <div class="titulo">VARIEDADES PRIMICIA</div>
-        <div class="nombre" style="color: #000; font-weight: bold; display: block !important;">${nombreMostrado}</div>
-        <div class="precio">$${parseFloat(producto.precio).toFixed(2)}</div>
-        <img src="${barcodeImage}" alt="Código de barras">
-        <div class="codigo">${producto.codigo_barras}</div>
-      `;
-
-      vinetasContainer.appendChild(vineta);
-    }
-
-    window.api.onPrintCompleted((result) => {
-
-      if (result.success) {
-        mostrarMensaje('Viñetas enviadas a la impresora correctamente', 'success');
-        cerrarVinetaModal();
-      } else {
-        console.error('Error al imprimir:', result.error);
-        mostrarMensaje('Error al imprimir: ' + (result.error || 'La impresión fue cancelada'), 'error');
-      }
-
-      if (document.body.contains(printContainer)) {
-        document.body.removeChild(printContainer);
-      }
-    });
-
-    setTimeout(async () => {
-      try {
-
-
-        const printResult = await window.api.printVineta(printContainer.innerHTML);
-
-        if (!printResult.success) {
-          console.error('Error al iniciar la impresión:', printResult.error);
-          mostrarMensaje('Error al iniciar la impresión: ' + printResult.error, 'error');
           if (document.body.contains(printContainer)) {
             document.body.removeChild(printContainer);
           }
-        }
-      } catch (error) {
-        console.error('Exception en la impresión:', error);
-        mostrarMensaje('Error en el proceso de impresión: ' + error.message, 'error');
-        if (document.body.contains(printContainer)) {
-          document.body.removeChild(printContainer);
-        }
-      }
-    }, 300);
+        });
 
+
+        setTimeout(async () => {
+          try {
+            const printResult = await window.api.printVineta(printContainer.innerHTML);
+
+            if (!printResult.success) {
+              console.error('Error al iniciar la impresión:', printResult.error);
+              mostrarMensaje('Error al iniciar la impresión: ' + printResult.error, 'error');
+              if (document.body.contains(printContainer)) {
+                document.body.removeChild(printContainer);
+              }
+            }
+          } catch (error) {
+            console.error('Exception en la impresión:', error);
+            mostrarMensaje('Error en el proceso de impresión: ' + error.message, 'error');
+            if (document.body.contains(printContainer)) {
+              document.body.removeChild(printContainer);
+            }
+          }
+        }, 300);
+      })
+      .catch(error => {
+        console.error('Exception general en imprimirDirecto:', error);
+        mostrarMensaje('Error al preparar la impresión: ' + error.message, 'error');
+      });
   } catch (error) {
     console.error('Exception general en imprimirDirecto:', error);
     mostrarMensaje('Error al preparar la impresión: ' + error.message, 'error');
   }
 }
 
-async function generarPDF() {
+function generarPDF() {
   const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
   const productoId = document.getElementById('vinetaPreview').dataset.productoId;
 
   try {
+    window.api.getProducto(parseInt(productoId))
+      .then(response => {
+        if (!response.success) {
+          console.error('Error al obtener datos del producto para PDF:', response.error);
+          mostrarMensaje('Error al obtener datos del producto', 'error');
+          return;
+        }
 
-    const response = await window.api.getProducto(productoId);
-
-    if (!response.success) {
-      console.error('Error al obtener datos del producto para PDF:', response.error);
-      mostrarMensaje('Error al obtener datos del producto', 'error');
-      return;
-    }
-
-    const producto = response.data;
-
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
+        const producto = response.data;
 
 
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 5;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
 
 
-    const vinetaWidth = 100;
-    const vinetaHeight = 65;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 5;
 
 
-    const columnCount = Math.floor((pageWidth - 2 * margin) / vinetaWidth);
-
-    let currentPage = 1;
-    let x = margin;
-    let y = margin;
+        const vinetaWidth = vinetaConfig.vinetaWidth;
+        const vinetaHeight = vinetaConfig.vinetaHeight;
 
 
-    for (let i = 0; i < cantidad; i++) {
+        const columnCount = Math.floor((pageWidth - 2 * margin) / vinetaWidth);
 
-      if (x > pageWidth - margin - vinetaWidth) {
-        x = margin;
-        y += vinetaHeight;
-      }
-
-      if (y > pageHeight - margin - vinetaHeight) {
-        doc.addPage();
-        currentPage++;
-        x = margin;
-        y = margin;
-      }
-
-      const inMargin = 5;
-      const centerX = x + vinetaWidth / 2;
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text('VARIEDADES PRIMICIA', centerX, y + inMargin + 8, { align: 'center' });
+        let currentPage = 1;
+        let x = margin;
+        let y = margin;
 
 
-      const nombreProducto = producto.nombre || 'Producto sin nombre';
+        for (let i = 0; i < cantidad; i++) {
+
+          if (x > pageWidth - margin - vinetaWidth) {
+            x = margin;
+            y += vinetaHeight;
+          }
 
 
-
-      let nombreMostrado = nombreProducto;
-      if (nombreMostrado.length > 25) {
-        nombreMostrado = nombreMostrado.substring(0, 22) + '...';
-      }
-
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(nombreMostrado, centerX, y + inMargin + 16, { align: 'center' });
+          if (y > pageHeight - margin - vinetaHeight) {
+            doc.addPage();
+            currentPage++;
+            x = margin;
+            y = margin;
+          }
 
 
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(`$${parseFloat(producto.precio).toFixed(2)}`, centerX, y + inMargin + 26, { align: 'center' });
+          const canvas = document.getElementById('barcodeCanvas');
+          const imgData = canvas.toDataURL('image/png');
 
 
-      const canvas = document.getElementById('barcodeCanvas');
-      const imgData = canvas.toDataURL('image/png');
+          const barWidth = (vinetaWidth - vinetaConfig.marginLeft - vinetaConfig.marginRight) * (vinetaConfig.barcodeWidth / 100);
+          const barHeight = vinetaConfig.barcodeHeight / 3;
+          const barX = x + (vinetaWidth - barWidth) / 2;
+          const barY = y + vinetaConfig.marginTop + 5;
+
+          doc.addImage(imgData, 'PNG', barX, barY, barWidth, barHeight);
 
 
-      const barWidth = vinetaWidth - 2 * inMargin;
-      const barHeight = 20;
-      const barX = x + inMargin;
-      const barY = y + inMargin + 30;
-
-      doc.addImage(imgData, 'PNG', barX, barY, barWidth, barHeight);
-
-
-      doc.setFontSize(8);
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.text(producto.codigo_barras, centerX, y + vinetaHeight - inMargin - 2, { align: 'center' });
+          const centerX = x + vinetaWidth / 2;
+          doc.setFontSize(vinetaConfig.fontSizeCode / 2.5);
+          doc.setFont(undefined, 'normal');
+          doc.setTextColor(0, 0, 0);
+          doc.text(producto.codigo_barras, centerX, barY + barHeight + 5, { align: 'center' });
 
 
-      x += vinetaWidth;
-    }
-
-    const pdfData = doc.output('datauristring');
-    const base64Data = pdfData.split(',')[1];
+          const textoY = barY + barHeight + 12;
 
 
-    const saveResult = await window.api.savePDF(base64Data);
+          const nombreProducto = producto.nombre || 'Producto sin nombre';
+          let nombreMostrado = nombreProducto;
+          if (nombreMostrado.length > 20) {
+            nombreMostrado = nombreMostrado.substring(0, 17) + '...';
+          }
 
-    if (saveResult.success) {
-      mostrarMensaje(`PDF guardado en: ${saveResult.filePath}`, 'success');
-      cerrarVinetaModal();
-    } else {
-      console.error('Error al guardar PDF:', saveResult.error);
-      mostrarMensaje('Error al guardar el PDF: ' + saveResult.error, 'error');
-    }
 
+          const anchoEfectivo = vinetaWidth - vinetaConfig.marginLeft - vinetaConfig.marginRight;
+          const margenEntreMedio = 2;
+
+
+          doc.setFontSize(vinetaConfig.fontSizeName / 2.5);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(0, 0, 0);
+
+
+          const nombreX = x + vinetaConfig.marginLeft;
+          doc.text(nombreMostrado, nombreX, textoY);
+
+
+          const precioTexto = `$${parseFloat(producto.precio).toFixed(2)}`;
+          doc.setFontSize(vinetaConfig.fontSizePrice / 2.5);
+
+
+          const anchoPrecio = doc.getTextWidth(precioTexto);
+
+
+          const precioX = x + vinetaWidth - vinetaConfig.marginRight - anchoPrecio;
+          doc.text(precioTexto, precioX, textoY);
+
+
+          x += vinetaWidth;
+        }
+
+
+        const pdfData = doc.output('datauristring');
+        const base64Data = pdfData.split(',')[1];
+
+
+        window.api.savePDF(base64Data)
+          .then(saveResult => {
+            if (saveResult.success) {
+              mostrarMensaje(`PDF guardado en: ${saveResult.filePath}`, 'success');
+              cerrarVinetaModal();
+            } else {
+              console.error('Error al guardar PDF:', saveResult.error);
+              mostrarMensaje('Error al guardar el PDF: ' + saveResult.error, 'error');
+            }
+          })
+          .catch(error => {
+            console.error('Error al guardar PDF:', error);
+            mostrarMensaje('Error al guardar el PDF: ' + error.message, 'error');
+          });
+      })
+      .catch(error => {
+        console.error('Exception en generarPDF:', error);
+        mostrarMensaje('Error al generar PDF: ' + error.message, 'error');
+      });
   } catch (error) {
     console.error('Exception en generarPDF:', error);
     mostrarMensaje('Error al generar PDF: ' + error.message, 'error');
   }
 }
 
+function initConfigTabs() {
+  const tabButtons = document.querySelectorAll('[data-tab]');
 
 
-async function generarPDF() {
-  const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
-  const productoId = document.getElementById('vinetaPreview').dataset.productoId;
+  tabButtons.forEach(button => {
+    button.addEventListener('click', function () {
 
+      document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.classList.add('hidden');
+      });
+
+
+      document.querySelectorAll('[data-tab]').forEach(btn => {
+        btn.classList.remove('active', 'border-blue-500');
+        btn.classList.add('border-transparent');
+      });
+
+
+      const panelId = this.getAttribute('data-tab');
+      document.getElementById(panelId).classList.remove('hidden');
+
+
+      this.classList.add('active', 'border-blue-500');
+      this.classList.remove('border-transparent');
+    });
+  });
+}
+
+
+async function mostrarModalVineta(id) {
   try {
 
-    const response = await window.api.getProducto(productoId);
+    const response = await window.api.getProducto(id);
 
-    if (!response.success) {
-      console.error('Error al obtener datos del producto para PDF:', response.error);
-      mostrarMensaje('Error al obtener datos del producto', 'error');
-      return;
-    }
-
-    const producto = response.data;
+    if (response.success) {
+      const producto = response.data;
 
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
-
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 5;
-
-
-    const vinetaWidth = 100;
-    const vinetaHeight = 65;
-
-
-    const columnCount = Math.floor((pageWidth - 2 * margin) / vinetaWidth);
-
-    let currentPage = 1;
-    let x = margin;
-    let y = margin;
-
-
-    for (let i = 0; i < cantidad; i++) {
-
-      if (x > pageWidth - margin - vinetaWidth) {
-        x = margin;
-        y += vinetaHeight;
-      }
-
-      if (y > pageHeight - margin - vinetaHeight) {
-        doc.addPage();
-        currentPage++;
-        x = margin;
-        y = margin;
+      if (!producto.nombre) {
+        console.error('⚠️ ALERTA: El campo nombre del producto está vacío o undefined');
       }
 
 
-      const inMargin = 5;
+      const prevDebug = document.getElementById('vineta-debug');
+      if (prevDebug) prevDebug.remove();
 
 
-      const centerX = x + vinetaWidth / 2;
+      vinetaModal.classList.remove('hidden');
+      vinetaModal.classList.add('flex');
 
 
+      const debugElement = document.createElement('div');
+      debugElement.id = 'vineta-debug';
+      debugElement.style.display = 'none';
+      debugElement.innerHTML = `
+        <div style="position: fixed; bottom: 10px; right: 10px; background: #f0f0f0;
+                    border: 1px solid #ccc; padding: 10px; z-index: 9999; max-width: 300px;
+                    font-size: 12px; display: none;">
+          <h4>Debug Info:</h4>
+          <p><strong>ID:</strong> ${producto.id}</p>
+          <p><strong>Nombre:</strong> "${producto.nombre || 'undefined'}"</p>
+          <p><strong>Precio:</strong> ${producto.precio}</p>
+          <p><strong>Código:</strong> ${producto.codigo_barras}</p>
+          <button id="toggleDebug" style="background: #ddd; padding: 2px 5px; margin-top: 5px;">
+            Ocultar
+          </button>
+        </div>`;
+      document.body.appendChild(debugElement);
 
 
+      initConfigControls();
 
 
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text('VARIEDADES PRIMICIA', centerX, y + inMargin + 8, { align: 'center' });
+      initConfigTabs();
 
 
-      const nombreProducto = producto.nombre || 'Producto sin nombre';
+      generarVistaPrevia(producto);
 
 
-
-      let nombreMostrado = nombreProducto;
-      if (nombreMostrado.length > 25) {
-        nombreMostrado = nombreMostrado.substring(0, 22) + '...';
-      }
-
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(nombreMostrado, centerX, y + inMargin + 16, { align: 'center' });
+      const debugBtn = document.createElement('button');
+      debugBtn.id = 'showDebug';
+      debugBtn.innerText = 'Debug';
+      debugBtn.className = 'text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded absolute bottom-3 right-3';
+      vinetaModal.querySelector('.bg-white').appendChild(debugBtn);
 
 
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(`$${parseFloat(producto.precio).toFixed(2)}`, centerX, y + inMargin + 26, { align: 'center' });
+      setTimeout(() => {
+        document.getElementById('showDebug')?.addEventListener('click', () => {
+          const debugInfo = document.querySelector('#vineta-debug div');
+          debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
+        });
 
+        document.getElementById('toggleDebug')?.addEventListener('click', () => {
+          document.querySelector('#vineta-debug div').style.display = 'none';
+        });
+      }, 200);
 
-      const canvas = document.getElementById('barcodeCanvas');
-      const imgData = canvas.toDataURL('image/png');
-
-
-      const barWidth = vinetaWidth - 2 * inMargin;
-      const barHeight = 20;
-      const barX = x + inMargin;
-      const barY = y + inMargin + 30;
-
-      doc.addImage(imgData, 'PNG', barX, barY, barWidth, barHeight);
-
-
-      doc.setFontSize(8);
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.text(producto.codigo_barras, centerX, y + vinetaHeight - inMargin - 2, { align: 'center' });
-
-
-      x += vinetaWidth;
-    }
-
-    const pdfData = doc.output('datauristring');
-    const base64Data = pdfData.split(',')[1];
-
-
-    const saveResult = await window.api.savePDF(base64Data);
-
-    if (saveResult.success) {
-      mostrarMensaje(`PDF guardado en: ${saveResult.filePath}`, 'success');
-      cerrarVinetaModal();
     } else {
-      console.error('Error al guardar PDF:', saveResult.error);
-      mostrarMensaje('Error al guardar el PDF: ' + saveResult.error, 'error');
+      console.error('Error al obtener producto para viñeta:', response.error);
+      mostrarMensaje('Error al obtener el producto: ' + response.error, 'error');
+    }
+  } catch (error) {
+    console.error('Exception en mostrarModalVineta:', error);
+    mostrarMensaje('Error en la aplicación: ' + error.message, 'error');
+  }
+}
+
+function generarCodigoBarrasAutomatico(producto) {
+
+  const fecha = new Date();
+  const año = fecha.getFullYear().toString().slice(-2);
+  const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+  const dia = fecha.getDate().toString().padStart(2, '0');
+
+
+  const fechaString = año + mes + dia;
+
+
+  let hashNombre = 0;
+  for (let i = 0; i < producto.nombre.length; i++) {
+    hashNombre += producto.nombre.charCodeAt(i);
+  }
+
+  hashNombre = hashNombre % 10000;
+  const hashString = hashNombre.toString().padStart(4, '0');
+
+
+  const precioString = Math.floor(producto.precio * 100).toString().slice(-4).padStart(4, '0');
+
+
+  const codigoBase = fechaString + hashString + precioString;
+
+
+  let codigoFinal = calcularEAN13(codigoBase);
+
+  return codigoFinal;
+}
+
+
+function calcularEAN13(codigo) {
+
+  let codigoAjustado = codigo.padStart(12, '0').slice(-12);
+
+
+  let suma = 0;
+  for (let i = 0; i < 12; i++) {
+    suma += parseInt(codigoAjustado.charAt(i)) * (i % 2 === 0 ? 1 : 3);
+  }
+
+  let digitoVerificacion = (10 - (suma % 10)) % 10;
+
+
+  return codigoAjustado + digitoVerificacion;
+}
+
+
+async function guardarProducto(event) {
+  event.preventDefault();
+
+  const productoId = document.getElementById('productoId').value;
+  const producto = {
+    nombre: document.getElementById('nombre').value,
+    precio: parseFloat(document.getElementById('precio').value),
+    codigo_barras: document.getElementById('codigo_barras').value,
+    descripcion: document.getElementById('descripcion').value || ''
+  };
+
+
+  if (!producto.codigo_barras || producto.codigo_barras.trim() === '') {
+    producto.codigo_barras = generarCodigoBarrasAutomatico(producto);
+  }
+
+  try {
+    let response;
+
+    if (productoId) {
+      producto.id = parseInt(productoId);
+      response = await window.api.updateProducto(producto);
+      if (response.success) {
+        mostrarMensaje('Producto actualizado correctamente', 'success');
+      }
+    } else {
+      response = await window.api.addProducto(producto);
+      if (response.success) {
+        mostrarMensaje('Producto agregado correctamente', 'success');
+      }
     }
 
+    if (response.success) {
+      cerrarModal();
+      await cargarProductos();
+    } else {
+      console.error('Error al guardar producto:', response.error);
+      mostrarMensaje('Error: ' + response.error, 'error');
+    }
   } catch (error) {
-    console.error('Exception en generarPDF:', error);
-    mostrarMensaje('Error al generar PDF: ' + error.message, 'error');
+    console.error('Exception en guardarProducto:', error);
+    mostrarMensaje('Error en la aplicación: ' + error.message, 'error');
   }
 }
 
 function mostrarMensaje(mensaje, tipo = 'info') {
 
-  alert(mensaje);
+  const prevNotificacion = document.getElementById('notificacion-sistema');
+  if (prevNotificacion) {
+    prevNotificacion.remove();
+  }
+
+
+  const notificacion = document.createElement('div');
+  notificacion.id = 'notificacion-sistema';
+
+
+  let clases = 'fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center ';
+  let icono = '';
+
+  switch (tipo) {
+    case 'success':
+      clases += 'bg-green-100 text-green-800 border-l-4 border-green-500';
+      icono = '<i class="fas fa-check-circle text-green-500 mr-2 text-xl"></i>';
+      break;
+    case 'error':
+      clases += 'bg-red-100 text-red-800 border-l-4 border-red-500';
+      icono = '<i class="fas fa-exclamation-circle text-red-500 mr-2 text-xl"></i>';
+      break;
+    case 'warning':
+      clases += 'bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500';
+      icono = '<i class="fas fa-exclamation-triangle text-yellow-500 mr-2 text-xl"></i>';
+      break;
+    default:
+      clases += 'bg-blue-100 text-blue-800 border-l-4 border-blue-500';
+      icono = '<i class="fas fa-info-circle text-blue-500 mr-2 text-xl"></i>';
+  }
+
+  notificacion.className = clases;
+
+
+  notificacion.innerHTML = `
+    ${icono}
+    <div class="flex-grow">${mensaje}</div>
+    <button class="ml-4 text-gray-500 hover:text-gray-700">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+
+
+  document.body.appendChild(notificacion);
+
+
+  const closeBtn = notificacion.querySelector('button');
+  closeBtn.addEventListener('click', () => {
+    notificacion.remove();
+  });
+
+
+  setTimeout(() => {
+    if (document.body.contains(notificacion)) {
+      notificacion.classList.add('opacity-0', 'transform', 'translate-x-full');
+      notificacion.style.transition = 'all 0.5s ease-in-out';
+
+
+      setTimeout(() => {
+        if (document.body.contains(notificacion)) {
+          notificacion.remove();
+        }
+      }, 500);
+    }
+  }, 3000);
+
+
+  console.log(`[${tipo.toUpperCase()}] ${mensaje}`);
 }

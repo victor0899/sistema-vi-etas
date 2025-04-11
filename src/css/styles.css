@@ -68,3 +68,100 @@
   opacity: 0;
   transition: opacity 300ms;
 }
+
+.config-panel {
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  padding: 10px;
+  margin-top: 15px;
+}
+
+.config-panel h3 {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.config-section {
+  margin-bottom: 15px;
+}
+
+.config-section h4 {
+  font-size: 13px;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+.config-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.config-label {
+  flex: 0 0 100px;
+  font-size: 12px;
+}
+
+.config-control {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.config-control input[type="range"] {
+  flex: 1;
+  margin-right: 8px;
+}
+
+.config-value {
+  flex: 0 0 40px;
+  text-align: center;
+  font-size: 12px;
+  padding: 2px 4px;
+  background: #e9e9e9;
+  border-radius: 3px;
+}
+
+.config-button {
+  margin-top: 10px;
+  text-align: right;
+}
+
+.vineta-config-container {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .vineta-config-container {
+    flex-direction: row;
+  }
+  
+  .preview-container {
+    flex: 0 0 300px;
+    margin-right: 15px;
+  }
+  
+  .config-container {
+    flex: 1;
+  }
+}
+
+.vineta-container {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.vineta-container.with-guides::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px dashed #aaa;
+  pointer-events: none;
+}
