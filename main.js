@@ -31,6 +31,7 @@ app.whenReady().then(() => {
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit();
 });
+
 ipcMain.handle('print-vineta', async (event, htmlContent) => {
   try {
     const printWindow = new BrowserWindow({
@@ -53,19 +54,51 @@ ipcMain.handle('print-vineta', async (event, htmlContent) => {
           body { margin: 0; padding: 0; }
           .print-row { display: flex; flex-wrap: wrap; }
           .vineta-print {
-            width: 50mm;
-            height: 30mm;
-            padding: 2mm;
+            width: 100mm;
+            height: 65mm;
+            padding: 3mm;
             box-sizing: border-box;
             text-align: center;
             border: 0;
             page-break-inside: avoid;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
           }
-          .vineta-print .titulo { font-weight: bold; font-size: 8pt; margin-bottom: 1mm; }
-          .vineta-print .nombre { font-size: 7pt; margin-bottom: 1mm; }
-          .vineta-print .precio { font-weight: bold; font-size: 10pt; margin-bottom: 2mm; }
-          .vineta-print img { max-width: 100%; height: 10mm; }
-          .vineta-print .codigo { font-size: 6pt; margin-top: 1mm; }
+          .vineta-print .titulo { 
+            font-weight: bold; 
+            font-size: 12pt; 
+            margin-bottom: 2mm; 
+            display: block !important;
+          }
+          .vineta-print .nombre { 
+            font-size: 10pt; 
+            font-weight: bold;
+            margin-bottom: 3mm; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            max-width: 90mm;
+            display: block !important;
+            visibility: visible !important;
+          }
+          .vineta-print .precio { 
+            font-weight: bold; 
+            font-size: 14pt; 
+            margin-bottom: 4mm; 
+            display: block !important;
+          }
+          .vineta-print img { 
+            max-width: 80mm; 
+            height: 15mm; 
+            margin: 3mm 0;
+            display: block !important;
+          }
+          .vineta-print .codigo { 
+            font-size: 8pt; 
+            margin-top: 2mm; 
+            display: block !important;
+          }
         </style>
       </head>
       <body>

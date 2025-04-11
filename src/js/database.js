@@ -7,7 +7,7 @@ class Database {
       if (err) {
         console.error('Error al conectar a la base de datos:', err.message);
       } else {
-        console.log('Conexión exitosa a la base de datos SQLite');
+        
         this.initDatabase();
       }
     });
@@ -29,7 +29,7 @@ class Database {
       if (err) {
         console.error('Error al crear la tabla productos:', err.message);
       } else {
-        console.log('Tabla productos creada o ya existente');
+        
       }
     });
   }
@@ -63,7 +63,7 @@ class Database {
   insertProducto(producto) {
     return new Promise((resolve, reject) => {
       const { nombre, precio, codigo_barras, descripcion } = producto;
-      console.log('Insertando producto en DB:', producto);
+      
       
       const sql = `
         INSERT INTO productos (nombre, precio, codigo_barras, descripcion)
@@ -75,7 +75,7 @@ class Database {
           console.error('Error al insertar producto:', err);
           reject(err);
         } else {
-          console.log('Producto insertado correctamente, ID:', this.lastID);
+          
           resolve({ lastID: this.lastID });
         }
       });
@@ -138,7 +138,7 @@ class Database {
       if (err) {
         console.error('Error al cerrar la base de datos:', err.message);
       } else {
-        console.log('Conexión a la base de datos cerrada');
+        
       }
     });
   }
