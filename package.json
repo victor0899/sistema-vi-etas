@@ -30,6 +30,24 @@
     "jspdf": "^2.5.1",
     "sqlite3": "^5.1.6"
   },
+  "build": {
+    "appId": "com.tuempresa.sistema-vinetas",
+    "productName": "Sistema de Viñetas",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": ["nsis"],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Sistema de Viñetas"
+    }
+  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "core-js",
