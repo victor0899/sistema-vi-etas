@@ -1,20 +1,16 @@
 let vinetaConfig = {
-
   marginTop: 3,
   marginBottom: 3,
   marginLeft: 3,
   marginRight: 3,
-
 
   fontSizeTitle: 16,
   fontSizeName: 14,
   fontSizePrice: 22,
   fontSizeCode: 12,
 
-
-  vinetaWidth: 100,
-  vinetaHeight: 65,
-
+  vinetaWidth: 100,  // 100mm de ancho
+  vinetaHeight: 65,  // 65mm de alto
 
   barcodeWidth: 80,
   barcodeHeight: 60
@@ -574,7 +570,6 @@ function generarVistaPrevia(producto) {
   return vinetaContainer;
 }
 
-// Reemplazo de la función de impresión directa para tamaño personalizado
 function imprimirDirecto() {
   const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
   const productoId = document.getElementById('vinetaPreview').dataset.productoId;
@@ -725,123 +720,6 @@ function imprimirDirecto() {
     mostrarMensaje('Error al preparar la impresión: ' + error.message, 'error');
   }
 }
-
-// Reemplazo de la función de generación de PDF para tamaño personalizado
-function generarPDF() {
-  const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
-  const productoId = document.getElementById('vinetaPreview').dataset.productoId;
-
-  try {
-    window.api.getProducto(parseInt(productoId))
-      .then(response => {
-        if (!response.success) {
-          console.error('Error al obtener datos del producto para PDF:', response.error);
-          mostrarMensaje('Error al obtener datos del producto', 'error');
-          return;
-        }
-
-        const producto = response.data;
-
-        // Dimensiones exactas de la etiqueta en milímetros
-        const etiquetaWidth = vinetaConfig.vinetaWidth; // 100mm
-        const etiquetaHeight = vinetaConfig.vinetaHeight; // 65mm
-
-        // Crear un PDF con el tamaño exacto de la etiqueta
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({
-          orientation: 'landscape', // Asegurando que el ancho sea 100 y alto 65
-          unit: 'mm',
-          format: [etiquetaWidth, etiquetaHeight], // Tamaño exacto de la etiqueta
-          hotfixes: ['px_scaling']  // Para mejor escalado de imágenes
-        });
-
-        // Generar una etiqueta por página
-        for (let i = 0; i < cantidad; i++) {
-          if (i > 0) {
-            // Añadir nueva página para cada etiqueta
-            doc.addPage([etiquetaWidth, etiquetaHeight], 'landscape');
-          }
-
-          // Obtener el código de barras como imagen
-          const canvas = document.getElementById('barcodeCanvas');
-          const imgData = canvas.toDataURL('image/png');
-
-          // Calcular dimensiones proporcionales
-          const margenH = vinetaConfig.marginLeft;
-          const margenV = vinetaConfig.marginTop;
-          const anchoEfectivo = etiquetaWidth - (vinetaConfig.marginLeft + vinetaConfig.marginRight);
-          const altoEfectivo = etiquetaHeight - (vinetaConfig.marginTop + vinetaConfig.marginBottom);
-          
-          // Centrar el código de barras
-          const barWidth = anchoEfectivo * (vinetaConfig.barcodeWidth / 100);
-          const barHeight = vinetaConfig.barcodeHeight / 3;
-          const barX = margenH + (anchoEfectivo - barWidth) / 2;
-          const barY = margenV;
-
-          // Añadir código de barras
-          doc.addImage(imgData, 'PNG', barX, barY, barWidth, barHeight);
-
-          // Añadir código de barras como texto
-          doc.setFontSize(vinetaConfig.fontSizeCode / 2.5);
-          doc.setFont(undefined, 'normal');
-          doc.text(producto.codigo_barras, etiquetaWidth / 2, barY + barHeight + 5, { align: 'center' });
-
-          // Calcular posición del nombre y precio
-          const textoY = barY + barHeight + 12;
-
-          // Preparar nombre (recortar si es muy largo)
-          const nombreProducto = producto.nombre || 'Producto sin nombre';
-          let nombreMostrado = nombreProducto;
-          if (nombreMostrado.length > 20) {
-            nombreMostrado = nombreMostrado.substring(0, 17) + '...';
-          }
-
-          // Añadir nombre y precio
-          doc.setFontSize(vinetaConfig.fontSizeName / 2.5);
-          doc.setFont(undefined, 'bold');
-          doc.text(nombreMostrado, margenH, textoY);
-
-          // Precio
-          const precioTexto = `$${parseFloat(producto.precio).toFixed(2)}`;
-          doc.setFontSize(vinetaConfig.fontSizePrice / 2.5);
-          
-          // Calcular ancho del precio para ubicarlo a la derecha
-          const anchoPrecio = doc.getTextWidth(precioTexto);
-          const precioX = etiquetaWidth - margenH - anchoPrecio;
-          doc.text(precioTexto, precioX, textoY);
-        }
-
-        // Convertir a base64 para guardar
-        const pdfData = doc.output('datauristring');
-        const base64Data = pdfData.split(',')[1];
-
-        // Guardar el PDF con el tamaño personalizado
-        window.api.savePDF(base64Data)
-          .then(saveResult => {
-            if (saveResult.success) {
-              mostrarMensaje(`PDF guardado en: ${saveResult.filePath}`, 'success');
-              cerrarVinetaModal();
-            } else {
-              console.error('Error al guardar PDF:', saveResult.error);
-              mostrarMensaje('Error al guardar el PDF: ' + saveResult.error, 'error');
-            }
-          })
-          .catch(error => {
-            console.error('Error al guardar PDF:', error);
-            mostrarMensaje('Error al guardar el PDF: ' + error.message, 'error');
-          });
-      })
-      .catch(error => {
-        console.error('Exception en generarPDF:', error);
-        mostrarMensaje('Error al generar PDF: ' + error.message, 'error');
-      });
-  } catch (error) {
-    console.error('Exception en generarPDF:', error);
-    mostrarMensaje('Error al generar PDF: ' + error.message, 'error');
-  }
-}
-
-
 
 function generarPDF() {
   const cantidad = parseInt(document.getElementById('cantidad').value) || 1;

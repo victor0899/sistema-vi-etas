@@ -46,18 +46,18 @@ ipcMain.handle('print-vineta', async (event, htmlContent, printOptions = {}) => 
 
     // Preparar CSS con configuración de tamaño de página específico (100x65mm)
     const customCSS = `
-      @page {
-        size: 100mm 65mm !important;
+    @page {
+      size: ${printOptions.pageSize?.width / 1000 || 100}mm ${printOptions.pageSize?.height / 1000 || 65}mm !important;
+      margin: 0 !important;
+    }
+    @media print {
+      html, body {
         margin: 0 !important;
+        padding: 0 !important;
+        width: ${printOptions.pageSize?.width / 1000 || 100}mm !important;
+        height: ${printOptions.pageSize?.height / 1000 || 65}mm !important;
+        overflow: hidden !important;
       }
-      @media print {
-        html, body {
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 100mm !important;
-          height: 65mm !important;
-          overflow: hidden !important;
-        }
         .vineta-print {
           width: 100mm !important;
           height: 65mm !important;
@@ -167,8 +167,8 @@ ipcMain.handle('print-vineta', async (event, htmlContent, printOptions = {}) => 
         // Especificar tamaño personalizado en micrones (1mm = 1000 micrones)
         // 100mm x 65mm convertido a micrones
         pageSize: {
-          width: 100000,
-          height: 65000,
+          width: 100000, // 100mm en micrones
+          height: 65000, // 65mm en micrones
           microns: true
         },
         showPrintDialog: true  // Mostrar diálogo para confirmar
