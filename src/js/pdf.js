@@ -1,6 +1,3 @@
-/**
- * Utilidades para la generación de PDF de viñetas
- */
 
 const CONFIG = {
 
@@ -68,18 +65,8 @@ function generarPDFViñetas(producto, cantidad, doc) {
   return doc;
 }
 
-/**
- * Dibuja una viñeta individual en el documento PDF
- */
 function dibujarVineta(doc, producto, x, y, width, height) {
-
-
-
-
-
   const inMargin = 5;
-
-
   const centerX = x + width / 2;
 
 

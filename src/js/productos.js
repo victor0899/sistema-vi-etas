@@ -1,16 +1,16 @@
 let vinetaConfig = {
-  marginTop: 3,
-  marginBottom: 3,
-  marginLeft: 3,
-  marginRight: 3,
+  marginTop: 1,
+  marginBottom: 1,
+  marginLeft: 1,
+  marginRight: 1,
 
-  fontSizeTitle: 16,
-  fontSizeName: 14,
-  fontSizePrice: 22,
-  fontSizeCode: 12,
+  fontSizeTitle: 14,
+  fontSizeName: 12,
+  fontSizePrice: 20,
+  fontSizeCode: 10,
 
-  vinetaWidth: 100,  // 100mm de ancho
-  vinetaHeight: 65,  // 65mm de alto
+  vinetaWidth: 80,  
+  vinetaHeight: 45,  
 
   barcodeWidth: 80,
   barcodeHeight: 60
