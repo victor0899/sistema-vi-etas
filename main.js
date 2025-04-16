@@ -44,23 +44,29 @@ ipcMain.handle('print-vineta', async (event, htmlContent, printOptions = {}) => 
       }
     });
 
-    // Preparar CSS con configuración de tamaño de página específico (100x65mm)
+    // Preparar CSS con configuración de tamaño de página específico
+    const pageWidth = printOptions.pageSize?.width / 1000 || 100; // Convertir micrones a mm
+    const pageHeight = printOptions.pageSize?.height / 1000 || 65; // Convertir micrones a mm
+    
     const customCSS = `
-    @page {
-      size: ${printOptions.pageSize?.width / 1000 || 100}mm ${printOptions.pageSize?.height / 1000 || 65}mm !important;
-      margin: 0 !important;
-    }
-    @media print {
-      html, body {
+      @page {
+        size: ${pageWidth}mm ${pageHeight}mm !important;
         margin: 0 !important;
-        padding: 0 !important;
-        width: ${printOptions.pageSize?.width / 1000 || 100}mm !important;
-        height: ${printOptions.pageSize?.height / 1000 || 65}mm !important;
-        overflow: hidden !important;
       }
+      @media print {
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: ${pageWidth}mm !important;
+          height: ${pageHeight}mm !important;
+          overflow: hidden !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+        }
         .vineta-print {
-          width: 100mm !important;
-          height: 65mm !important;
+          width: ${pageWidth}mm !important;
+          height: ${pageHeight}mm !important;
           padding: ${printOptions.margins?.top || 3}mm ${printOptions.margins?.right || 3}mm ${printOptions.margins?.bottom || 3}mm ${printOptions.margins?.left || 3}mm !important;
           box-sizing: border-box !important;
           text-align: center !important;
@@ -70,6 +76,10 @@ ipcMain.handle('print-vineta', async (event, htmlContent, printOptions = {}) => 
           justify-content: center !important;
           align-items: center !important;
           overflow: hidden !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          margin: 0 !important;
         }
       }
     `;
@@ -81,11 +91,22 @@ ipcMain.handle('print-vineta', async (event, htmlContent, printOptions = {}) => 
         <meta charset="UTF-8">
         <title>Imprimir Viñeta</title>
         <style>
-          body { margin: 0; padding: 0; }
-          .print-row { display: flex; flex-wrap: wrap; }
+          body { 
+            margin: 0; 
+            padding: 0; 
+            position: relative;
+            left: 0;
+            top: 0;
+          }
+          .print-row { 
+            display: flex; 
+            flex-wrap: wrap; 
+            margin: 0;
+            padding: 0;
+          }
           .vineta-print {
-            width: 100mm;
-            height: 65mm;
+            width: ${pageWidth}mm;
+            height: ${pageHeight}mm;
             padding: 3mm;
             box-sizing: border-box;
             text-align: center;
@@ -95,46 +116,55 @@ ipcMain.handle('print-vineta', async (event, htmlContent, printOptions = {}) => 
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            margin: 0;
+            position: absolute;
+            left: 0;
+            top: 0;
           }
           .vineta-print img.barcode { 
             max-width: 80%; 
             height: 20mm; 
-            margin-bottom: 2mm;
+            margin: 0 auto;
             display: block !important;
+            padding: 0;
           }
           .vineta-print .codigo { 
             font-size: 8pt; 
-            margin-bottom: 3mm; 
-            color: #000 !important;
-            display: block !important; 
+            margin: 0; 
+            padding: 0;
+            text-align: center !important;
+            width: 100% !important;
+            line-height: 1;
           }
           .vineta-print .nombre-precio-container {
             display: flex !important;
-            justify-content: space-between !important;
+            flex-direction: column !important;
+            justify-content: center !important;
             align-items: center !important;
             width: 100% !important;
-            margin-top: 2mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            text-align: center !important;
           }
           .vineta-print .nombre { 
             font-size: 10pt; 
             font-weight: bold !important;
             color: #000 !important; 
-            text-align: left !important;
-            flex: 1 !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-            padding-right: 2mm !important;
-            display: inline-block !important;
-            visibility: visible !important;
+            text-align: center !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1;
           }
           .vineta-print .precio { 
             font-weight: bold !important; 
             font-size: 14pt; 
             color: #000 !important;
-            text-align: right !important;
-            white-space: nowrap !important;
-            display: inline-block !important;
+            text-align: center !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1;
           }
           ${customCSS}
         </style>
@@ -167,8 +197,8 @@ ipcMain.handle('print-vineta', async (event, htmlContent, printOptions = {}) => 
         // Especificar tamaño personalizado en micrones (1mm = 1000 micrones)
         // 100mm x 65mm convertido a micrones
         pageSize: {
-          width: 100000, // 100mm en micrones
-          height: 65000, // 65mm en micrones
+          width: 100000,
+          height: 65000,
           microns: true
         },
         showPrintDialog: true  // Mostrar diálogo para confirmar
