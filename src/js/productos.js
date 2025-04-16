@@ -1,17 +1,14 @@
 let vinetaConfig = {
-  marginTop: 1,
-  marginBottom: 1,
-  marginLeft: 1,
-  marginRight: 1,
-
+  //marginTop: 1,
+  //marginBottom: 1,
+  //marginLeft: 1,
+  //marginRight: 1,
   fontSizeTitle: 14,
   fontSizeName: 12,
   fontSizePrice: 20,
   fontSizeCode: 10,
-
   vinetaWidth: 80,  
   vinetaHeight: 45,  
-
   barcodeWidth: 80,
   barcodeHeight: 60
 };
@@ -461,8 +458,6 @@ async function mostrarModalVineta(id) {
   }
 }
 
-
-
 function generarVistaPrevia(producto) {
   if (!producto || !producto.nombre) {
     console.error('El producto no tiene nombre o es undefined:', producto);
@@ -474,7 +469,6 @@ function generarVistaPrevia(producto) {
   const vinetaContainer = document.createElement('div');
   vinetaContainer.className = 'vineta-container with-guides';
 
-
   vinetaContainer.style.width = `${vinetaConfig.vinetaWidth * 3}px`;
   vinetaContainer.style.height = `${vinetaConfig.vinetaHeight * 3}px`;
   vinetaContainer.style.padding = `${vinetaConfig.marginTop * 3}px ${vinetaConfig.marginRight * 3}px ${vinetaConfig.marginBottom * 3}px ${vinetaConfig.marginLeft * 3}px`;
@@ -484,40 +478,45 @@ function generarVistaPrevia(producto) {
   vinetaContainer.style.display = 'flex';
   vinetaContainer.style.flexDirection = 'column';
   vinetaContainer.style.alignItems = 'center';
+  vinetaContainer.style.justifyContent = 'center';
 
-
+  // Código de barras
   const barcodeCanvas = document.createElement('canvas');
   barcodeCanvas.id = 'barcodeCanvas';
   barcodeCanvas.style.width = `${vinetaConfig.barcodeWidth}%`;
   barcodeCanvas.style.height = `${vinetaConfig.barcodeHeight}px`;
   barcodeCanvas.style.marginBottom = '5px';
+  barcodeCanvas.style.margin = '0 auto';
 
-
+  // Código de texto
   const codigoInfo = document.createElement('div');
   codigoInfo.className = 'text-center';
   codigoInfo.style.fontSize = `${vinetaConfig.fontSizeCode}px`;
   codigoInfo.style.marginBottom = '8px';
+  codigoInfo.style.width = '100%';
+  codigoInfo.style.textAlign = 'center';
   codigoInfo.textContent = producto.codigo_barras;
 
-
+  // Contenedor para nombre y precio (ahora en columna)
   const nombrePrecioContainer = document.createElement('div');
   nombrePrecioContainer.style.display = 'flex';
-  nombrePrecioContainer.style.justifyContent = 'space-between';
+  nombrePrecioContainer.style.flexDirection = 'column';
+  nombrePrecioContainer.style.justifyContent = 'center';
   nombrePrecioContainer.style.alignItems = 'center';
   nombrePrecioContainer.style.width = '100%';
   nombrePrecioContainer.style.marginTop = '5px';
+  nombrePrecioContainer.style.textAlign = 'center';
 
-
+  // Nombre del producto
   const productoNombre = document.createElement('div');
   productoNombre.className = 'producto-nombre';
   productoNombre.style.fontSize = `${vinetaConfig.fontSizeName}px`;
   productoNombre.style.fontWeight = 'bold';
-  productoNombre.style.textAlign = 'left';
-  productoNombre.style.flex = '1';
+  productoNombre.style.textAlign = 'center';
+  productoNombre.style.width = '100%';
   productoNombre.style.overflow = 'hidden';
   productoNombre.style.textOverflow = 'ellipsis';
-  productoNombre.style.whiteSpace = 'nowrap';
-  productoNombre.style.marginRight = '10px';
+  productoNombre.style.marginBottom = '5px';
 
   if (producto && producto.nombre) {
     if (producto.nombre.length > 20) {
@@ -531,18 +530,17 @@ function generarVistaPrevia(producto) {
     productoNombre.style.color = 'red';
   }
 
-
+  // Precio
   const precio = document.createElement('div');
   precio.className = 'font-bold';
   precio.style.fontSize = `${vinetaConfig.fontSizePrice}px`;
-  precio.style.textAlign = 'right';
-  precio.style.whiteSpace = 'nowrap';
+  precio.style.textAlign = 'center';
+  precio.style.width = '100%';
   precio.textContent = `$${parseFloat(producto.precio).toFixed(2)}`;
 
-
+  // Ensamblar todo
   nombrePrecioContainer.appendChild(productoNombre);
   nombrePrecioContainer.appendChild(precio);
-
 
   vinetaContainer.appendChild(barcodeCanvas);
   vinetaContainer.appendChild(codigoInfo);
@@ -550,7 +548,7 @@ function generarVistaPrevia(producto) {
 
   preview.appendChild(vinetaContainer);
 
-
+  // Generar código de barras
   try {
     JsBarcode('#barcodeCanvas', producto.codigo_barras, {
       format: 'CODE128',
@@ -620,6 +618,40 @@ function imprimirDirecto() {
               justify-content: center !important;
               align-items: center !important;
               overflow: hidden !important;
+            }
+            .vineta-print img.barcode {
+              max-width: ${vinetaConfig.barcodeWidth}% !important;
+              height: ${vinetaConfig.barcodeHeight/3}mm !important;
+              margin: 0 auto 2mm auto !important;
+              display: block !important;
+            }
+            .vineta-print .codigo {
+              font-size: ${vinetaConfig.fontSizeCode/2.5}pt !important;
+              margin-bottom: 3mm !important;
+              text-align: center !important;
+              width: 100% !important;
+            }
+            .vineta-print .nombre-precio-container {
+              display: flex !important;
+              flex-direction: column !important;
+              justify-content: center !important;
+              align-items: center !important;
+              width: 100% !important;
+              margin-top: 2mm !important;
+              text-align: center !important;
+            }
+            .vineta-print .nombre {
+              font-size: ${vinetaConfig.fontSizeName/2.5}pt !important;
+              font-weight: bold !important;
+              margin-bottom: 2mm !important;
+              text-align: center !important;
+              width: 100% !important;
+            }
+            .vineta-print .precio {
+              font-weight: bold !important;
+              font-size: ${vinetaConfig.fontSizePrice/2.5}pt !important;
+              text-align: center !important;
+              width: 100% !important;
             }
           }
         `;
@@ -772,10 +804,10 @@ function generarPDF() {
           const barX = margenH + (anchoEfectivo - barWidth) / 2;
           const barY = margenV;
 
-          // Añadir código de barras
+          // Añadir código de barras centrado
           doc.addImage(imgData, 'PNG', barX, barY, barWidth, barHeight);
 
-          // Añadir código de barras como texto
+          // Añadir código de barras como texto centrado
           doc.setFontSize(vinetaConfig.fontSizeCode / 2.5);
           doc.setFont(undefined, 'normal');
           doc.text(producto.codigo_barras, etiquetaWidth / 2, barY + barHeight + 5, { align: 'center' });
@@ -790,19 +822,15 @@ function generarPDF() {
             nombreMostrado = nombreMostrado.substring(0, 17) + '...';
           }
 
-          // Añadir nombre y precio
+          // Añadir nombre centrado
           doc.setFontSize(vinetaConfig.fontSizeName / 2.5);
           doc.setFont(undefined, 'bold');
-          doc.text(nombreMostrado, margenH, textoY);
+          doc.text(nombreMostrado, etiquetaWidth / 2, textoY, { align: 'center' });
 
-          // Precio
+          // Precio centrado
           const precioTexto = `$${parseFloat(producto.precio).toFixed(2)}`;
           doc.setFontSize(vinetaConfig.fontSizePrice / 2.5);
-          
-          // Calcular ancho del precio para ubicarlo a la derecha
-          const anchoPrecio = doc.getTextWidth(precioTexto);
-          const precioX = etiquetaWidth - margenH - anchoPrecio;
-          doc.text(precioTexto, precioX, textoY);
+          doc.text(precioTexto, etiquetaWidth / 2, textoY + 7, { align: 'center' });
         }
 
         // Convertir a base64 para guardar
