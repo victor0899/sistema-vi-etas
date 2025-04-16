@@ -34,6 +34,7 @@ app.on('window-all-closed', function () {
 
 ipcMain.handle('print-vineta', async (event, htmlContent, printOptions = {}) => {
   try {
+
     const printWindow = new BrowserWindow({
       width: 800,
       height: 600,
@@ -43,8 +44,6 @@ ipcMain.handle('print-vineta', async (event, htmlContent, printOptions = {}) => 
         contextIsolation: true
       }
     });
-
-    // Preparar CSS con configuración de tamaño de página específico
     const pageWidth = printOptions.pageSize?.width / 1000 || 100; // Convertir micrones a mm
     const pageHeight = printOptions.pageSize?.height / 1000 || 65; // Convertir micrones a mm
     
@@ -121,13 +120,13 @@ ipcMain.handle('print-vineta', async (event, htmlContent, printOptions = {}) => 
             left: 0;
             top: 0;
           }
-          .vineta-print img.barcode { 
-            max-width: 80%; 
-            height: 20mm; 
-            margin: 0 auto;
-            display: block !important;
-            padding: 0;
-          }
+         .vineta-print img.barcode { 
+    max-width: 60%; /* Reducido */
+    height: 14mm; /* Reducido de 20mm a 14mm */
+    margin: 0 auto;
+    display: block !important;
+    padding: 0;
+  }
           .vineta-print .codigo { 
             font-size: 8pt; 
             margin: 0; 

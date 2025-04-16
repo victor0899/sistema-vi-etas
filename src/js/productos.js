@@ -9,7 +9,7 @@ let vinetaConfig = {
   fontSizeCode: 10,
   vinetaWidth: 80,  
   vinetaHeight: 45,  
-  barcodeWidth: 80,
+  barcodeWidth: 60,
   barcodeHeight: 60
 };
 
@@ -483,11 +483,11 @@ function generarVistaPrevia(producto) {
   vinetaContainer.style.position = 'relative';
   vinetaContainer.style.left = '0';
 
-  // Código de barras
+  // Código de barras - REDUCIDO DE TAMAÑO
   const barcodeCanvas = document.createElement('canvas');
   barcodeCanvas.id = 'barcodeCanvas';
-  barcodeCanvas.style.width = `${vinetaConfig.barcodeWidth}%`;
-  barcodeCanvas.style.height = `${vinetaConfig.barcodeHeight}px`;
+  barcodeCanvas.style.width = `${vinetaConfig.barcodeWidth * 0.7}%`;  // Reducir al 70% del ancho configurado
+  barcodeCanvas.style.height = `${vinetaConfig.barcodeHeight * 0.7}px`;  // Reducir al 70% del alto configurado
   barcodeCanvas.style.margin = '0 auto';
   barcodeCanvas.style.padding = '0';
   barcodeCanvas.style.display = 'block';
@@ -560,12 +560,12 @@ function generarVistaPrevia(producto) {
 
   preview.appendChild(vinetaContainer);
 
-  // Generar código de barras
+  // Generar código de barras - ALTURA REDUCIDA
   try {
     JsBarcode('#barcodeCanvas', producto.codigo_barras, {
       format: 'CODE128',
-      width: 2,
-      height: vinetaConfig.barcodeHeight,
+      width: 1.5,  // Líneas más delgadas
+      height: vinetaConfig.barcodeHeight * 0.6,  // Altura reducida al 60%
       displayValue: false,
       margin: 0 // Eliminar el margen del código de barras
     });
@@ -824,13 +824,10 @@ function generarPDF() {
           const anchoEfectivo = etiquetaWidth - (vinetaConfig.marginLeft + vinetaConfig.marginRight);
           const altoEfectivo = etiquetaHeight - (vinetaConfig.marginTop + vinetaConfig.marginBottom);
           
-          // Centrar el código de barras
-          const barWidth = anchoEfectivo * (vinetaConfig.barcodeWidth / 100);
-          const barHeight = vinetaConfig.barcodeHeight / 3;
+          const barWidth = anchoEfectivo * (vinetaConfig.barcodeWidth / 100) * 0.7;  // Reducido a 70%
+          const barHeight = vinetaConfig.barcodeHeight / 3 * 0.7;  // Reducido a 70%
           const barX = margenH + (anchoEfectivo - barWidth) / 2;
-          // Empezar desde el margen superior exactamente
           const barY = margenV;
-
           // Añadir código de barras centrado
           doc.addImage(imgData, 'PNG', barX, barY, barWidth, barHeight);
 
