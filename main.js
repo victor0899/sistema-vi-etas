@@ -31,8 +31,10 @@ app.whenReady().then(() => {
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit();
 });
-ipcMain.handle('print-vineta', async (event, htmlContent) => {
+
+ipcMain.handle('print-vineta', async (event, htmlContent, printOptions = {}) => {
   try {
+
     const printWindow = new BrowserWindow({
       width: 800,
       height: 600,
@@ -42,6 +44,44 @@ ipcMain.handle('print-vineta', async (event, htmlContent) => {
         contextIsolation: true
       }
     });
+    const pageWidth = printOptions.pageSize?.width / 1000 || 100; // Convertir micrones a mm
+    const pageHeight = printOptions.pageSize?.height / 1000 || 65; // Convertir micrones a mm
+    
+    const customCSS = `
+      @page {
+        size: ${pageWidth}mm ${pageHeight}mm !important;
+        margin: 0 !important;
+      }
+      @media print {
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: ${pageWidth}mm !important;
+          height: ${pageHeight}mm !important;
+          overflow: hidden !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+        }
+        .vineta-print {
+          width: ${pageWidth}mm !important;
+          height: ${pageHeight}mm !important;
+          padding: ${printOptions.margins?.top || 3}mm ${printOptions.margins?.right || 3}mm ${printOptions.margins?.bottom || 3}mm ${printOptions.margins?.left || 3}mm !important;
+          box-sizing: border-box !important;
+          text-align: center !important;
+          page-break-after: always !important;
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: center !important;
+          align-items: center !important;
+          overflow: hidden !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          margin: 0 !important;
+        }
+      }
+    `;
 
     await printWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(`
       <!DOCTYPE html>
@@ -50,22 +90,82 @@ ipcMain.handle('print-vineta', async (event, htmlContent) => {
         <meta charset="UTF-8">
         <title>Imprimir Viñeta</title>
         <style>
-          body { margin: 0; padding: 0; }
-          .print-row { display: flex; flex-wrap: wrap; }
+          body { 
+            margin: 0; 
+            padding: 0; 
+            position: relative;
+            left: 0;
+            top: 0;
+          }
+          .print-row { 
+            display: flex; 
+            flex-wrap: wrap; 
+            margin: 0;
+            padding: 0;
+          }
           .vineta-print {
-            width: 50mm;
-            height: 30mm;
-            padding: 2mm;
+            width: ${pageWidth}mm;
+            height: ${pageHeight}mm;
+            padding: 3mm;
             box-sizing: border-box;
             text-align: center;
             border: 0;
             page-break-inside: avoid;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            position: absolute;
+            left: 0;
+            top: 0;
           }
-          .vineta-print .titulo { font-weight: bold; font-size: 8pt; margin-bottom: 1mm; }
-          .vineta-print .nombre { font-size: 7pt; margin-bottom: 1mm; }
-          .vineta-print .precio { font-weight: bold; font-size: 10pt; margin-bottom: 2mm; }
-          .vineta-print img { max-width: 100%; height: 10mm; }
-          .vineta-print .codigo { font-size: 6pt; margin-top: 1mm; }
+         .vineta-print img.barcode { 
+    max-width: 60%; /* Reducido */
+    height: 14mm; /* Reducido de 20mm a 14mm */
+    margin: 0 auto;
+    display: block !important;
+    padding: 0;
+  }
+          .vineta-print .codigo { 
+            font-size: 8pt; 
+            margin: 0; 
+            padding: 0;
+            text-align: center !important;
+            width: 100% !important;
+            line-height: 1;
+          }
+          .vineta-print .nombre-precio-container {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            text-align: center !important;
+          }
+          .vineta-print .nombre { 
+            font-size: 10pt; 
+            font-weight: bold !important;
+            color: #000 !important; 
+            text-align: center !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1;
+          }
+          .vineta-print .precio { 
+            font-weight: bold !important; 
+            font-size: 14pt; 
+            color: #000 !important;
+            text-align: center !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1;
+          }
+          ${customCSS}
         </style>
       </head>
       <body>
@@ -77,12 +177,13 @@ ipcMain.handle('print-vineta', async (event, htmlContent) => {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     try {
-      const printOptions = { 
+      // Configurar opciones específicas para impresión de etiquetas
+      const defaultPrintOptions = { 
         silent: false,
         printBackground: true,
         color: true,
         margin: {
-          marginType: 'custom',
+          marginType: 'none', // Sin márgenes
           top: 0,
           bottom: 0,
           left: 0,
@@ -92,10 +193,20 @@ ipcMain.handle('print-vineta', async (event, htmlContent) => {
         scaleFactor: 100,
         pagesPerSheet: 1,
         copies: 1,
-        showPrintDialog: true 
+        // Especificar tamaño personalizado en micrones (1mm = 1000 micrones)
+        // 100mm x 65mm convertido a micrones
+        pageSize: {
+          width: 100000,
+          height: 65000,
+          microns: true
+        },
+        showPrintDialog: true  // Mostrar diálogo para confirmar
       };
       
-      await printWindow.webContents.print(printOptions, (success, reason) => {
+      // Combinar opciones predeterminadas con las proporcionadas
+      const mergedOptions = {...defaultPrintOptions, ...printOptions};
+      
+      await printWindow.webContents.print(mergedOptions, (success, reason) => {
         printWindow.close();
         if (success) {
           event.sender.send('print-completed', { success: true });

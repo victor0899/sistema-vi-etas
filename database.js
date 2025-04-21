@@ -7,7 +7,7 @@ class Database {
       if (err) {
         console.error('Error al conectar a la base de datos:', err.message);
       } else {
-        console.log('Conexión exitosa a la base de datos SQLite');
+        
         this.initDatabase();
       }
     });
@@ -29,7 +29,7 @@ class Database {
       if (err) {
         console.error('Error al crear la tabla productos:', err.message);
       } else {
-        console.log('Tabla productos creada o ya existente');
+        
       }
     });
   }
@@ -132,7 +132,7 @@ class Database {
       if (err) {
         console.error('Error al cerrar la base de datos:', err.message);
       } else {
-        console.log('Conexión a la base de datos cerrada');
+        
       }
     });
   }
