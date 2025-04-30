@@ -1,11 +1,13 @@
 {
-  "name": "sistema-viñetas",
+  "name": "sistema-vinetas",
   "version": "1.0.0",
   "description": "Sistema CRUD para generar viñetas con código de barras",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [
     "electron",
@@ -25,10 +27,10 @@
     "tailwindcss": "^3.3.3"
   },
   "dependencies": {
+    "better-sqlite3": "^9.5.0",
     "electron-serve": "^1.1.0",
     "jsbarcode": "^3.11.5",
-    "jspdf": "^2.5.1",
-    "sqlite3": "^5.1.6"
+    "jspdf": "^2.5.1"
   },
   "build": {
     "appId": "com.tuempresa.sistema-vinetas",
@@ -36,23 +38,64 @@
     "directories": {
       "output": "dist"
     },
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!dist/**/*",
+      "!*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.gitignore,.gitattributes}",
+      "!**/{.eslintignore,.eslintrc.js,.prettierignore,.prettierrc}"
+    ],
+    "extraResources": [
+      {
+        "from": "productos.sqlite",
+        "to": "productos.sqlite"
+      }
+    ],
     "win": {
-      "target": ["nsis"],
-      "icon": "assets/icon.ico"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "artifactName": "${productName}-Windows-${version}-Setup.${ext}"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Sistema de Viñetas"
+      "shortcutName": "Sistema de Viñetas",
+      "deleteAppDataOnUninstall": false,
+      "displayLanguageSelector": true,
+      "installerLanguages": ["es-ES"],
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico"
+    },
+    "portable": {
+      "artifactName": "${productName}-Windows-${version}-Portable.${ext}"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "hardenedRuntime": false
     }
   },
   "pnpm": {
     "onlyBuiltDependencies": [
       "core-js",
       "electron",
-      "sqlite3"
+      "better-sqlite3"
     ]
   }
 }

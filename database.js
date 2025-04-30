@@ -1,16 +1,69 @@
-const sqlite3 = require('sqlite3').verbose();
+// Actualizado para usar better-sqlite3 con compatibilidad multiplataforma
+const Database = require('better-sqlite3');
 const path = require('path');
+const { app } = require('electron');
+const fs = require('fs');
 
-class Database {
+class DatabaseManager {
   constructor() {
-    this.db = new sqlite3.Database(path.join(__dirname, 'productos.sqlite'), (err) => {
-      if (err) {
-        console.error('Error al conectar a la base de datos:', err.message);
-      } else {
+    // Obtener la aplicación de Electron (importar remotamente si es necesario)
+    const electronApp = app || require('electron').remote.app;
+    
+    // Determinar la ruta correcta de la base de datos
+    const userDataPath = electronApp.getPath('userData');
+    // En desarrollo usa la raíz del proyecto, en producción usa userData
+    const dbDirectory = electronApp.isPackaged 
+      ? userDataPath
+      : __dirname;
+    
+    // Ruta completa al archivo de base de datos
+    const dbPath = path.join(dbDirectory, 'productos.sqlite');
+    
+    // Asegurar que el directorio existe (importante en Windows)
+    if (!fs.existsSync(dbDirectory)) {
+      fs.mkdirSync(dbDirectory, { recursive: true });
+    }
+    
+    // Si estamos empaquetados y no existe el archivo de BD, copiarlo desde resources
+    if (electronApp.isPackaged && !fs.existsSync(dbPath)) {
+      try {
+        // En Windows, la ruta a los recursos es diferente
+        let sourcePath;
+        if (process.platform === 'win32') {
+          // En Windows, los recursos se ubican junto al ejecutable
+          sourcePath = path.join(process.resourcesPath, 'productos.sqlite');
+        } else {
+          // En macOS, la ruta es estándar
+          sourcePath = path.join(process.resourcesPath, 'productos.sqlite');
+        }
         
-        this.initDatabase();
+        if (fs.existsSync(sourcePath)) {
+          console.log(`Copiando base de datos desde ${sourcePath} a ${dbPath}`);
+          fs.copyFileSync(sourcePath, dbPath);
+        } else {
+          console.error(`Archivo de base de datos no encontrado en ${sourcePath}`);
+        }
+      } catch (err) {
+        console.error('Error al copiar la base de datos inicial:', err);
       }
-    });
+    }
+    
+    // Crear/abrir la base de datos con manejo de errores mejorado
+    try {
+      // Opciones específicas para Windows para mejorar el rendimiento
+      const options = {
+        verbose: console.log,
+        fileMustExist: false, // No falla si el archivo no existe
+        timeout: 5000  // Timeout más largo para operaciones en discos lentos de Windows
+      };
+      
+      this.db = new Database(dbPath, options);
+      console.log(`Base de datos conectada correctamente en: ${dbPath}`);
+      this.initDatabase();
+    } catch (err) {
+      console.error('Error al abrir la base de datos:', err.message);
+      throw err; // Relanzar para manejo en main.js
+    }
   }
 
   initDatabase() {
@@ -25,117 +78,129 @@ class Database {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`;
 
-    this.db.run(sql, (err) => {
-      if (err) {
-        console.error('Error al crear la tabla productos:', err.message);
-      } else {
-        
-      }
-    });
+    try {
+      this.db.exec(sql);
+      console.log('Tabla productos inicializada correctamente');
+    } catch (err) {
+      console.error('Error al crear la tabla productos:', err.message);
+      throw err;
+    }
   }
+  
   getAllProductos() {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM productos ORDER BY created_at DESC';
-      this.db.all(sql, [], (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
+    try {
+      const stmt = this.db.prepare('SELECT * FROM productos ORDER BY created_at DESC');
+      return stmt.all();
+    } catch (err) {
+      console.error('Error al obtener productos:', err.message);
+      throw err;
+    }
   }
 
   getProductoById(id) {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM productos WHERE id = ?';
-      this.db.get(sql, [id], (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row);
-        }
-      });
-    });
+    try {
+      const stmt = this.db.prepare('SELECT * FROM productos WHERE id = ?');
+      return stmt.get(id);
+    } catch (err) {
+      console.error('Error al obtener producto por ID:', err.message);
+      throw err;
+    }
   }
 
   insertProducto(producto) {
-    return new Promise((resolve, reject) => {
+    try {
       const { nombre, precio, codigo_barras, descripcion } = producto;
-      const sql = `
+      const stmt = this.db.prepare(`
         INSERT INTO productos (nombre, precio, codigo_barras, descripcion)
         VALUES (?, ?, ?, ?)
-      `;
+      `);
       
-      this.db.run(sql, [nombre, precio, codigo_barras, descripcion || ''], function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ lastID: this.lastID });
-        }
-      });
-    });
+      const info = stmt.run(nombre, precio, codigo_barras, descripcion || '');
+      return { lastID: info.lastInsertRowid };
+    } catch (err) {
+      console.error('Error al insertar producto:', err.message);
+      throw err;
+    }
   }
 
   updateProducto(producto) {
-    return new Promise((resolve, reject) => {
+    try {
       const { id, nombre, precio, codigo_barras, descripcion } = producto;
-      const sql = `
+      const stmt = this.db.prepare(`
         UPDATE productos
         SET nombre = ?, precio = ?, codigo_barras = ?, descripcion = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-      `;
+      `);
       
-      this.db.run(sql, [nombre, precio, codigo_barras, descripcion || '', id], function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ changes: this.changes });
-        }
-      });
-    });
+      const info = stmt.run(nombre, precio, codigo_barras, descripcion || '', id);
+      return { changes: info.changes };
+    } catch (err) {
+      console.error('Error al actualizar producto:', err.message);
+      throw err;
+    }
   }
 
   deleteProducto(id) {
-    return new Promise((resolve, reject) => {
-      const sql = 'DELETE FROM productos WHERE id = ?';
-      this.db.run(sql, [id], function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ changes: this.changes });
-        }
-      });
-    });
+    try {
+      const stmt = this.db.prepare('DELETE FROM productos WHERE id = ?');
+      const info = stmt.run(id);
+      return { changes: info.changes };
+    } catch (err) {
+      console.error('Error al eliminar producto:', err.message);
+      throw err;
+    }
   }
+  
   searchProductos(query) {
-    return new Promise((resolve, reject) => {
-      const sql = `
+    try {
+      const searchParam = `%${query}%`;
+      const stmt = this.db.prepare(`
         SELECT * FROM productos 
         WHERE nombre LIKE ? OR codigo_barras LIKE ?
         ORDER BY created_at DESC
-      `;
-      const searchParam = `%${query}%`;
+      `);
       
-      this.db.all(sql, [searchParam, searchParam], (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
+      return stmt.all(searchParam, searchParam);
+    } catch (err) {
+      console.error('Error al buscar productos:', err.message);
+      throw err;
+    }
   }
 
-  close() {
-    this.db.close((err) => {
-      if (err) {
-        console.error('Error al cerrar la base de datos:', err.message);
-      } else {
-        
+  // Método para realizar un backup de la base de datos (útil en Windows)
+  backupDatabase(backupPath) {
+    try {
+      if (!backupPath) {
+        const date = new Date().toISOString().replace(/:/g, '-');
+        backupPath = path.join(app.getPath('userData'), `backup-${date}.sqlite`);
       }
-    });
+      
+      this.db.backup(backupPath)
+        .then(() => {
+          console.log(`Backup creado correctamente en ${backupPath}`);
+          return true;
+        })
+        .catch(err => {
+          console.error('Error al crear backup:', err);
+          return false;
+        });
+    } catch (err) {
+      console.error('Error al intentar respaldar la base de datos:', err);
+      return false;
+    }
+  }
+
+  // Cerrar la base de datos de manera segura
+  close() {
+    try {
+      if (this.db) {
+        this.db.close();
+        console.log('Base de datos cerrada correctamente');
+      }
+    } catch (err) {
+      console.error('Error al cerrar la base de datos:', err.message);
+    }
   }
 }
 
-module.exports = Database;
+module.exports = DatabaseManager;

@@ -1,89 +1,76 @@
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const path = require('path');
 
-class Database {
+class DatabaseManager {
   constructor() {
-    this.db = new sqlite3.Database(path.join(__dirname, 'productos.sqlite'), (err) => {
-      if (err) {
-        console.error('Error al conectar a la base de datos:', err.message);
-      } else {
-        
-        this.initDatabase();
-      }
-    });
+    try {
+      this.db = new Database(path.join(__dirname, 'productos.sqlite'));
+      this.initDatabase();
+    } catch (err) {
+      console.error('Error al conectar a la base de datos:', err.message);
+    }
   }
 
   initDatabase() {
-    const sql = `
-    CREATE TABLE IF NOT EXISTS productos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nombre TEXT NOT NULL,
-      precio REAL NOT NULL,
-      codigo_barras TEXT NOT NULL UNIQUE,
-      descripcion TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )`;
+    try {
+      const sql = `
+      CREATE TABLE IF NOT EXISTS productos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL,
+        precio REAL NOT NULL,
+        codigo_barras TEXT NOT NULL UNIQUE,
+        descripcion TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )`;
 
-    this.db.run(sql, (err) => {
-      if (err) {
-        console.error('Error al crear la tabla productos:', err.message);
-      } else {
-        
-      }
-    });
+      this.db.exec(sql);
+    } catch (err) {
+      console.error('Error al crear la tabla productos:', err.message);
+    }
   }
 
   getAllProductos() {
-    return new Promise((resolve, reject) => {
+    try {
       const sql = 'SELECT * FROM productos ORDER BY created_at DESC';
-      this.db.all(sql, [], (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
+      return this.db.prepare(sql).all();
+    } catch (err) {
+      console.error('Error al obtener productos:', err.message);
+      throw err;
+    }
   }
 
   getProductoById(id) {
-    return new Promise((resolve, reject) => {
+    try {
       const sql = 'SELECT * FROM productos WHERE id = ?';
-      this.db.get(sql, [id], (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row);
-        }
-      });
-    });
+      return this.db.prepare(sql).get(id);
+    } catch (err) {
+      console.error('Error al obtener producto por ID:', err.message);
+      throw err;
+    }
   }
 
   insertProducto(producto) {
-    return new Promise((resolve, reject) => {
+    try {
       const { nombre, precio, codigo_barras, descripcion } = producto;
-      
       
       const sql = `
         INSERT INTO productos (nombre, precio, codigo_barras, descripcion)
         VALUES (?, ?, ?, ?)
       `;
       
-      this.db.run(sql, [nombre, precio, codigo_barras, descripcion || ''], function(err) {
-        if (err) {
-          console.error('Error al insertar producto:', err);
-          reject(err);
-        } else {
-          
-          resolve({ lastID: this.lastID });
-        }
-      });
-    });
+      const stmt = this.db.prepare(sql);
+      const info = stmt.run(nombre, precio, codigo_barras, descripcion || '');
+      
+      return { lastID: info.lastInsertRowid };
+    } catch (err) {
+      console.error('Error al insertar producto:', err.message);
+      throw err;
+    }
   }
 
   updateProducto(producto) {
-    return new Promise((resolve, reject) => {
+    try {
       const { id, nombre, precio, codigo_barras, descripcion } = producto;
       const sql = `
         UPDATE productos
@@ -91,31 +78,31 @@ class Database {
         WHERE id = ?
       `;
       
-      this.db.run(sql, [nombre, precio, codigo_barras, descripcion || '', id], function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ changes: this.changes });
-        }
-      });
-    });
+      const stmt = this.db.prepare(sql);
+      const info = stmt.run(nombre, precio, codigo_barras, descripcion || '', id);
+      
+      return { changes: info.changes };
+    } catch (err) {
+      console.error('Error al actualizar producto:', err.message);
+      throw err;
+    }
   }
 
   deleteProducto(id) {
-    return new Promise((resolve, reject) => {
+    try {
       const sql = 'DELETE FROM productos WHERE id = ?';
-      this.db.run(sql, [id], function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ changes: this.changes });
-        }
-      });
-    });
+      const stmt = this.db.prepare(sql);
+      const info = stmt.run(id);
+      
+      return { changes: info.changes };
+    } catch (err) {
+      console.error('Error al eliminar producto:', err.message);
+      throw err;
+    }
   }
 
   searchProductos(query) {
-    return new Promise((resolve, reject) => {
+    try {
       const sql = `
         SELECT * FROM productos 
         WHERE nombre LIKE ? OR codigo_barras LIKE ?
@@ -123,25 +110,23 @@ class Database {
       `;
       const searchParam = `%${query}%`;
       
-      this.db.all(sql, [searchParam, searchParam], (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
+      const stmt = this.db.prepare(sql);
+      return stmt.all(searchParam, searchParam);
+    } catch (err) {
+      console.error('Error al buscar productos:', err.message);
+      throw err;
+    }
   }
 
   close() {
-    this.db.close((err) => {
-      if (err) {
-        console.error('Error al cerrar la base de datos:', err.message);
-      } else {
-        
+    try {
+      if (this.db) {
+        this.db.close();
       }
-    });
+    } catch (err) {
+      console.error('Error al cerrar la base de datos:', err.message);
+    }
   }
 }
 
-module.exports = Database;
+module.exports = DatabaseManager;
